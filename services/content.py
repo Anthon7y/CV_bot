@@ -1,0 +1,272 @@
+import os
+import random
+import logging
+from config import (
+    DAILY_TEXTS_FILE, DAILY_IMAGES_DIR, RUNES_IMAGES_DIR,
+    RUNES_VALUES_FILE, PRACTICUMS_FILE,
+    STEAMPUNK_DIR, STEAMPUNK2_DIR, ADVICES_FILE,
+    RUNES_VALUES_ROOT
+)
+
+logger = logging.getLogger(__name__)
+
+SUPPORTED_IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+
+
+# --- Предсказания ---
+
+def get_daily_texts() -> list[str]:
+    """Читает трактовки из texts/daily.txt."""
+    try:
+        with open(DAILY_TEXTS_FILE, "r", encoding="utf-8") as f:
+            lines = [line.strip() for line in f if line.strip()]
+        return lines
+    except FileNotFoundError:
+        logger.warning(f"Файл {DAILY_TEXTS_FILE} не найден.")
+        return []
+
+
+def get_random_daily_image() -> str | None:
+    """Возвращает путь к случайному изображению из images/daily/."""
+    try:
+        files = [
+            os.path.join(DAILY_IMAGES_DIR, f)
+            for f in os.listdir(DAILY_IMAGES_DIR)
+            if os.path.splitext(f)[1].lower() in SUPPORTED_IMAGE_EXTS
+        ]
+        if not files:
+            return None
+        return random.choice(files)
+    except FileNotFoundError:
+        return None
+
+
+def get_random_prediction() -> tuple[str | None, str]:
+    """Возвращает (путь к картинке, текст трактовки)."""
+    image = get_random_daily_image()
+    texts = get_daily_texts()
+    text = random.choice(texts) if texts else ""
+    return image, text
+
+
+# --- Карты STEAMPUNK ---
+
+# Маппинг номеров файлов на имена рун (только 24 руны старшего футарка)
+RUNE_NAMES_MAP = {
+    "1": "Феху",
+    "2": "Уруз", 
+    "3": "Турисаз",
+    "4": "Ансуз",
+    "5": "Райдо",
+    "6": "Кеназ",
+    "7": "Гебо",
+    "8": "Вуньо",
+    "9": "Хагалаз",
+    "10": "Наутиз",
+    "11": "Иса",
+    "12": "Йера",
+    "13": "Эйваз",
+    "14": "Перт",
+    "15": "Альгиз",
+    "16": "Соуло",
+    "17": "Тейваз",
+    "18": "Беркана",
+    "19": "Эваз",
+    "20": "Манназ",
+    "21": "Лагуз",
+    "22": "Ингуз",
+    "23": "Одал",
+    "24": "Дагаз",
+}
+
+# Обратный маппинг: имя руны -> номер
+RUNE_NUMBER_MAP = {v.lower(): k for k, v in RUNE_NAMES_MAP.items()}
+
+
+def load_advices() -> dict[str, str]:
+    """Читает файл Советы.txt и возвращает словарь {руна: совет}."""
+    advices = {}
+    try:
+        with open(ADVICES_FILE, "r", encoding="windows-1251") as f:
+            content = f.read()
+    except FileNotFoundError:
+        logger.warning(f"Файл {ADVICES_FILE} не найден.")
+        return advices
+    
+    # Парсим по пустым строкам
+    blocks = content.split("\n\n")
+    for block in blocks:
+        lines = [l.strip() for l in block.split("\n") if l.strip()]
+        if not lines:
+            continue
+        
+        first_line = lines[0]
+        if " - " in first_line:
+            rune_name = first_line.split(" - ")[0].strip()
+            advice_text = first_line.split(" - ", 1)[1].strip()
+            # Добавляем остальные строки
+            for line in lines[1:]:
+                advice_text += " " + line
+            advices[rune_name] = advice_text
+    
+    return advices
+
+
+def get_rune_advice(rune_name: str) -> str:
+    """Возвращает совет для руны."""
+    advices = load_advices()
+    return advices.get(rune_name, "")
+
+
+def get_steampunk_cards() -> list[dict]:
+    """Возвращает список карт из папки STEAMPUNK с именами рун."""
+    cards = []
+    try:
+        for f in os.listdir(STEAMPUNK_DIR):
+            name, ext = os.path.splitext(f)
+            if ext.lower() not in SUPPORTED_IMAGE_EXTS:
+                continue
+            if name.lower() == "рубашка":
+                continue
+            
+            # Извлекаем номер из имени файла (например, "1fehu" -> "1")
+            number = "".join(c for c in name if c.isdigit())
+            if number and number in RUNE_NAMES_MAP:
+                rune_name = RUNE_NAMES_MAP[number]
+                cards.append({
+                    "path": os.path.join(STEAMPUNK_DIR, f),
+                    "rune_name": rune_name,
+                    "number": number
+                })
+    except FileNotFoundError:
+        logger.warning(f"Папка {STEAMPUNK_DIR} не найдена.")
+    return cards
+
+
+def get_steampunk2_cards() -> list[dict]:
+    """Возвращает список карт из папки STEAMPUNK2 (тема Деньги)."""
+    cards = []
+    try:
+        for f in os.listdir(STEAMPUNK2_DIR):
+            name, ext = os.path.splitext(f)
+            if ext.lower() not in SUPPORTED_IMAGE_EXTS:
+                continue
+            
+            # Извлекаем номер из имени файла (например, "1 богатство и прибыль" -> "1")
+            number = "".join(c for c in name if c.isdigit())
+            if number and number in RUNE_NAMES_MAP:
+                rune_name = RUNE_NAMES_MAP[number]
+                cards.append({
+                    "path": os.path.join(STEAMPUNK2_DIR, f),
+                    "rune_name": rune_name,
+                    "number": number,
+                    "theme": "Деньги"
+                })
+    except FileNotFoundError:
+        logger.warning(f"Папка {STEAMPUNK2_DIR} не найдена.")
+    return cards
+
+
+def get_random_steampunk_card(sphere: str = "general") -> dict | None:
+    """
+    Возвращает случайную карту.
+    sphere: "relations" (STEAMPUNK), "money" (STEAMPUNK2), "advice" (STEAMPUNK)
+    """
+    if sphere == "money":
+        cards = get_steampunk2_cards()
+    else:
+        cards = get_steampunk_cards()
+    
+    if not cards:
+        return None
+    
+    card = random.choice(cards)
+    card["advice"] = get_rune_advice(card["rune_name"])
+    return card
+
+
+# --- Справочник рун ---
+
+def get_rune_image(rune_name: str) -> str | None:
+    """Ищет изображение руны по имени файла в папке runes/."""
+    try:
+        for f in os.listdir(RUNES_IMAGES_DIR):
+            name, ext = os.path.splitext(f)
+            if name.lower() == rune_name.lower() and ext.lower() in SUPPORTED_IMAGE_EXTS:
+                return os.path.join(RUNES_IMAGES_DIR, f)
+    except FileNotFoundError:
+        pass
+    return None
+
+
+def get_all_rune_names() -> list[str]:
+    """Возвращает список имён рун."""
+    return list(RUNE_NAMES_MAP.values())
+
+
+def load_runes_values() -> dict[str, dict]:
+    """Читает файл Значения рун.txt из корня проекта или из data/texts/."""
+    result = {}
+    
+    # Сначала пытаемся прочитать из data/texts/runes_values.txt
+    try:
+        with open(RUNES_VALUES_FILE, "r", encoding="utf-8") as f:
+            lines = [line.strip() for line in f if line.strip()]
+    except FileNotFoundError:
+        # Fallback на корневой файл
+        try:
+            with open(RUNES_VALUES_ROOT, "r", encoding="windows-1251") as f:
+                lines = [line.strip() for line in f if line.strip()]
+        except FileNotFoundError:
+            return result
+    
+    # Парсим пары строк: первая = прямое, вторая = перевёрнутое/негатив
+    i = 0
+    while i + 1 < len(lines):
+        line1 = lines[i]
+        line2 = lines[i + 1]
+        
+        # Извлекаем имя руны из первой строки
+        if " - " in line1:
+            rune_name = line1.split(" - ")[0].strip()
+            value = line1.split(" - ", 1)[1].strip()
+        else:
+            i += 2
+            continue
+        
+        # Извлекаем второе значение
+        if " - " in line2:
+            value_pp = line2.split(" - ", 1)[1].strip()
+        else:
+            value_pp = line2
+        
+        result[rune_name] = {
+            "value": value,
+            "value_pp": value_pp
+        }
+        i += 2
+    
+    return result
+
+
+def get_rune_info(rune_name: str) -> dict | None:
+    """Возвращает информацию о руне."""
+    runes = load_runes_values()
+    return runes.get(rune_name)
+
+
+# --- Практикумы ---
+
+def load_practicums() -> str:
+    """Читает файл практикумов."""
+    try:
+        with open(PRACTICUMS_FILE, "r", encoding="utf-8") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return ""
+
+
+def save_practicums(text: str) -> None:
+    """Сохраняет текст практикумов."""
+    with open(PRACTICUMS_FILE, "w", encoding="utf-8") as f:
+        f.write(text)

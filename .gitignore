@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Bot specific
+*.log
+*.db
+.env
+__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Old folder
+rune_bot/
