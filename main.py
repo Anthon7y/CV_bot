@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import logging.handlers
 import os
@@ -48,7 +47,7 @@ def ensure_dirs():
         os.makedirs(d, exist_ok=True)
 
 
-async def main():
+def main():
     setup_logging()
     logger = logging.getLogger(__name__)
 
@@ -94,20 +93,8 @@ async def main():
     app.add_handler(CallbackQueryHandler(subscription_callback_handler, pattern="^(sub|unsub)$"))
 
     logger.info("Бот запущен. Polling...")
-    await app.initialize()
-    await app.start()
-    await app.updater.start_polling(drop_pending_updates=True)
-    # Держим бота живым до сигнала остановки
-    import signal
-    stop_event = asyncio.get_event_loop().create_future()
-    loop = asyncio.get_event_loop()
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, stop_event.set_result, None)
-    await stop_event
-    await app.updater.stop()
-    await app.stop()
-    await app.shutdown()
+    app.run_polling(drop_pending_updates=True)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

@@ -1,6 +1,6 @@
 services:
   - type: worker
-    name: rune-bot
+    name: cyber-velva-bot
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: python main.py
@@ -9,3 +9,5 @@ services:
         sync: false
       - key: SHOP_LINK
         sync: false
+      - key: PYTHON_VERSION
+        value: 3.11.0
