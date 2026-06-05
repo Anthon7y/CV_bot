@@ -94,6 +94,23 @@ def main():
 
     logger.info("Бот запущен. Polling...")
     import asyncio
+    import threading
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+
+    # Render требует открытый порт для web-сервиса
+    class HealthHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"OK")
+        def log_message(self, format, *args):
+            pass  # подавляем логи HTTP
+
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(("0.0.0.0", port), HealthHandler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    logger.info(f"Health check сервер запущен на порту {port}")
+
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     app.run_polling(drop_pending_updates=True)
