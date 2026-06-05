@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import logging.handlers
 import os
@@ -93,9 +94,20 @@ async def main():
     app.add_handler(CallbackQueryHandler(subscription_callback_handler, pattern="^(sub|unsub)$"))
 
     logger.info("Бот запущен. Polling...")
-    app.run_polling(drop_pending_updates=True)
+    await app.initialize()
+    await app.start()
+    await app.updater.start_polling(drop_pending_updates=True)
+    # Держим бота живым до сигнала остановки
+    import signal
+    stop_event = asyncio.get_event_loop().create_future()
+    loop = asyncio.get_event_loop()
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(sig, stop_event.set_result, None)
+    await stop_event
+    await app.updater.stop()
+    await app.stop()
+    await app.shutdown()
 
 
 if __name__ == "__main__":
-    import asyncio
     asyncio.run(main())
