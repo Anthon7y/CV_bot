@@ -47,7 +47,7 @@ def ensure_dirs():
         os.makedirs(d, exist_ok=True)
 
 
-def main():
+async def main():
     setup_logging()
     logger = logging.getLogger(__name__)
 
@@ -97,4 +97,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import asyncio
+    asyncio.run(main())
