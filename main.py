@@ -93,6 +93,9 @@ def main():
     app.add_handler(CallbackQueryHandler(subscription_callback_handler, pattern="^(sub|unsub)$"))
 
     logger.info("Бот запущен. Polling...")
+    import asyncio
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     app.run_polling(drop_pending_updates=True)
 
 
