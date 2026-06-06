@@ -2,6 +2,9 @@ import logging
 import logging.handlers
 import os
 import sys
+import threading
+import time
+import urllib.request
 
 from telegram.ext import (
     Application,
@@ -110,6 +113,19 @@ def main():
     server = HTTPServer(("0.0.0.0", port), HealthHandler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     logger.info(f"Health check сервер запущен на порту {port}")
+
+    # Пингуем себя каждые 10 минут чтобы не засыпать на Render Free
+    render_url = os.environ.get("RENDER_EXTERNAL_URL")
+    if render_url:
+        def keep_alive():
+            while True:
+                time.sleep(600)
+                try:
+                    urllib.request.urlopen(render_url, timeout=10)
+                except Exception:
+                    pass
+        threading.Thread(target=keep_alive, daemon=True).start()
+        logger.info("Keep-alive пинг запущен")
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
