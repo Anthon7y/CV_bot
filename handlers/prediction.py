@@ -6,7 +6,6 @@ from services.db import get_last_prediction_date, set_last_prediction_date, upse
 from services.content import get_random_steampunk_card
 from keyboards.inline import get_sphere_keyboard
 from keyboards.main_menu import get_main_menu_keyboard
-from config import get_bot_name
 from middlewares.rate_limit import is_rate_limited
 
 logger = logging.getLogger(__name__)
@@ -28,14 +27,14 @@ async def prediction_menu_handler(update: Update, context: ContextTypes.DEFAULT_
 
     if last_date and last_date == today:
         await update.message.reply_text(
-            "🌙 Ты уже получил своё предсказание сегодня.\n\n"
-            "Руны говорят один раз в день — возвращайся завтра! ✨",
+            "Ты уже получил своё предсказание сегодня.\n\n"
+            "Руны говорят один раз в день — возвращайся завтра!",
             reply_markup=get_main_menu_keyboard()
         )
         return
 
     await update.message.reply_text(
-        "🔮 *Предсказание на день*\n\nВыбери сферу, о которой хочешь узнать:",
+        "Предсказание на день\n\nВыбери сферу, о которой хочешь узнать:",
         reply_markup=get_sphere_keyboard(),
         parse_mode="Markdown"
     )
@@ -61,15 +60,15 @@ async def sphere_callback_handler(update: Update, context: ContextTypes.DEFAULT_
 
     if last_date and last_date == today:
         await query.edit_message_text(
-            "🌙 Ты уже получил своё предсказание сегодня.\n\nВозвращайся завтра! ✨"
+            "Ты уже получил своё предсказание сегодня.\n\nВозвращайся завтра!"
         )
         return
 
     # Определяем сферу и выбираем колоду
     sphere_map = {
-        "sphere_relations": ("❤️ Отношения", "relations"),
-        "sphere_money": ("💰 Деньги", "money"),
-        "sphere_advice": ("🧭 Совет", "advice"),
+        "sphere_relations": ("Отношения", "relations"),
+        "sphere_money": ("Деньги", "money"),
+        "sphere_advice": ("Совет", "advice"),
     }
     sphere_label, sphere_type = sphere_map.get(query.data, ("", "general"))
 
@@ -78,21 +77,18 @@ async def sphere_callback_handler(update: Update, context: ContextTypes.DEFAULT_
 
     if not card:
         await query.edit_message_text(
-            "🔮 Карты пока недоступны. Добавьте изображения в папки STEAMPUNK/ или STEAMPUNK2/"
+            "Карты пока недоступны. Добавьте изображения в папки STEAMPUNK/ или STEAMPUNK2/"
         )
         return
 
-    bot_name = get_bot_name()
-
-    # Формируем текст предсказания
-    caption = f"🔮 *Предсказание на день* — {sphere_label}\n\n"
-    caption += f"🔤 *{card['rune_name']}*\n\n"
+    # Формируем текст предсказания (подпись — Ваши А&А)
+    caption = f"Предсказание на день — {sphere_label}\n\n"
+    caption += f"*{card['rune_name']}*\n\n"
     
     if card.get("advice"):
-        caption += f"💡 *Совет:*\n{card['advice']}\n\n"
+        caption += f"Совет:\n{card['advice']}\n\n"
     
-    caption += f"━━━━━━━━━━━━━━\n"
-    caption += f"_— {bot_name}_"
+    caption += f"— Ваши А&А"
 
     # Записываем дату предсказания ДО отправки
     set_last_prediction_date(user.id, date.today())

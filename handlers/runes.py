@@ -21,15 +21,15 @@ async def runes_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     if not rune_names:
         await update.message.reply_text(
-            "📖 *Значения рун*\n\n"
-            "Раздел скоро будет доступен. Следите за обновлениями! 🌿",
+            "Значения рун\n\n"
+            "Раздел скоро будет доступен. Следите за обновлениями!",
             reply_markup=get_main_menu_keyboard(),
             parse_mode="Markdown"
         )
         return
 
     await update.message.reply_text(
-        "📖 *Значения рун*\n\nВыбери руну, чтобы узнать её значение:",
+        "Значения рун\n\nВыбери руну, чтобы узнать её значение:",
         reply_markup=get_runes_keyboard(rune_names),
         parse_mode="Markdown"
     )
@@ -56,19 +56,18 @@ async def rune_callback_handler(update: Update, context: ContextTypes.DEFAULT_TY
 
     if not info:
         await query.message.reply_text(
-            f"🔤 *{rune_name}*\n\n"
+            f"*{rune_name}*\n\n"
             f"Описание руны пока недоступно.",
             parse_mode="Markdown"
         )
         return
 
-    # Формируем сообщение БЕЗ советов
-    text = f"🔤 *{rune_name}*\n\n"
+    text = f"*{rune_name}*\n\n"
     
     if info.get("value"):
         text += f"{info['value']}\n\n"
     
     if info.get("value_pp"):
-        text += f"↩️ {info['value_pp']}"
+        text += f"{info['value_pp']}"
 
     await query.message.reply_text(text, parse_mode="Markdown")

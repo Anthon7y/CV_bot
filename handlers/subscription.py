@@ -23,7 +23,7 @@ async def subscription_handler(update: Update, context: ContextTypes.DEFAULT_TYP
     broadcasts = get_broadcasts(limit=5)
 
     if not broadcasts:
-        text = "✉️ *Архив рассылок*\n\n"
+        text = "Архив рассылок\n\n"
         if is_admin:
             text += "Пока нет отправленных рассылок.\n"
             text += "Используйте команду /broadcast для отправки новой рассылки."
@@ -37,12 +37,12 @@ async def subscription_handler(update: Update, context: ContextTypes.DEFAULT_TYP
         )
         return
 
-    text = "✉️ *Архив рассылок*\n\n"
+    text = "Архив рассылок\n\n"
     for b in broadcasts:
         sent_at = b["sent_at"]
-        text += f"📅 {sent_at}\n"
+        text += f"{sent_at}\n"
         if b["message_text"]:
-            text += f"📝 {b['message_text'][:100]}...\n"
+            text += f"{b['message_text'][:100]}...\n"
         text += "\n"
 
     if is_admin:
@@ -69,7 +69,6 @@ async def subscription_callback_handler(update: Update, context: ContextTypes.DE
 
     # Отписка невозможна
     await query.edit_message_text(
-        "✉️ *Рассылка*\n\n"
-        "Рассылка активна — отписаться невозможно. 📢",
+        "Рассылка активна — отписаться невозможно.",
         parse_mode="Markdown"
     )

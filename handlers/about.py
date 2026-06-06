@@ -16,7 +16,7 @@ async def about_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text = "Информация о нас пока не добавлена."
 
     await update.message.reply_text(
-        f"ℹ️ *{bot_name}*\n\n{text}",
+        f"*{bot_name}*\n\n{text}",
         reply_markup=get_main_menu_keyboard(),
         parse_mode="Markdown"
     )
@@ -29,14 +29,14 @@ async def practicum_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if practicum_text:
         await update.message.reply_text(
-            f"🎓 *Наши практикумы*\n\n{practicum_text}",
+            f"Наши практикумы\n\n{practicum_text}",
             reply_markup=get_main_menu_keyboard(),
             parse_mode="Markdown"
         )
     else:
         await update.message.reply_text(
-            "🎓 *Наши практикумы*\n\n"
-            "Практикумы пока не добавлены. Следите за обновлениями! 🌿",
+            "Наши практикумы\n\n"
+            "Практикумы пока не добавлены. Следите за обновлениями!",
             reply_markup=get_main_menu_keyboard(),
             parse_mode="Markdown"
         )

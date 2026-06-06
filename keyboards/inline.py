@@ -1,9 +1,9 @@
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
 SPHERES = [
-    ("❤️ Отношения", "sphere_relations"),
-    ("💰 Деньги", "sphere_money"),
-    ("🧭 Совет", "sphere_advice"),
+    ("Отношения", "sphere_relations"),
+    ("Деньги", "sphere_money"),
+    ("Совет", "sphere_advice"),
 ]
 
 
@@ -29,7 +29,7 @@ def get_runes_keyboard(rune_names: list[str]) -> InlineKeyboardMarkup:
 
 def get_subscription_keyboard(subscribed: bool) -> InlineKeyboardMarkup:
     if subscribed:
-        btn = InlineKeyboardButton("🔕 Отписаться от рассылки", callback_data="unsub")
+        btn = InlineKeyboardButton("Отписаться от рассылки", callback_data="unsub")
     else:
-        btn = InlineKeyboardButton("🔔 Подписаться на рассылку", callback_data="sub")
+        btn = InlineKeyboardButton("Подписаться на рассылку", callback_data="sub")
     return InlineKeyboardMarkup([[btn]])

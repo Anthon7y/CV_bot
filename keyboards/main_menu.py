@@ -6,9 +6,9 @@ def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
     """Главное меню с динамическим названием бота."""
     bot_name = get_bot_name()
     keyboard = [
-        [KeyboardButton("🔮 Предсказание на день")],
-        [KeyboardButton("📖 Значения рун"), KeyboardButton("🎓 Наши практикумы")],
-        [KeyboardButton("ℹ️ О нас"), KeyboardButton("✉️ Рассылка")],
+        [KeyboardButton("Предсказание на день")],
+        [KeyboardButton("Значения рун"), KeyboardButton("Наши практикумы")],
+        [KeyboardButton("О нас"), KeyboardButton("Рассылка")],
     ]
     return ReplyKeyboardMarkup(
         keyboard,

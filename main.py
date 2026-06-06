@@ -84,11 +84,11 @@ def main():
     app.add_handler(practicum_conv_handler)
 
     # Reply-кнопки главного меню
-    app.add_handler(MessageHandler(filters.Regex("^🔮 Предсказание на день$"), prediction_menu_handler))
-    app.add_handler(MessageHandler(filters.Regex("^📖 Значения рун$"), runes_menu_handler))
-    app.add_handler(MessageHandler(filters.Regex("^🎓 Наши практикумы$"), practicum_handler))
-    app.add_handler(MessageHandler(filters.Regex("^ℹ️ О нас$"), about_handler))
-    app.add_handler(MessageHandler(filters.Regex("^✉️ Рассылка$"), subscription_handler))
+    app.add_handler(MessageHandler(filters.Regex("^Предсказание на день$"), prediction_menu_handler))
+    app.add_handler(MessageHandler(filters.Regex("^Значения рун$"), runes_menu_handler))
+    app.add_handler(MessageHandler(filters.Regex("^Наши практикумы$"), practicum_handler))
+    app.add_handler(MessageHandler(filters.Regex("^О нас$"), about_handler))
+    app.add_handler(MessageHandler(filters.Regex("^Рассылка$"), subscription_handler))
 
     # Inline callback'и
     app.add_handler(CallbackQueryHandler(sphere_callback_handler, pattern="^sphere_"))
