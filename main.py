@@ -129,7 +129,12 @@ def main():
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    app.run_polling(drop_pending_updates=True)
+
+    # Небольшая задержка чтобы старый инстанс успел завершиться при рестарте
+    import time as _time
+    _time.sleep(3)
+
+    app.run_polling(drop_pending_updates=True, allowed_updates=[])
 
 
 if __name__ == "__main__":
