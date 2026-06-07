@@ -3,6 +3,7 @@ services:
     name: cyber-velva-bot
     env: python
     pythonVersion: "3.11.0"
+    numInstances: 1
     buildCommand: pip install -r requirements.txt
     startCommand: python main.py
     envVars:
