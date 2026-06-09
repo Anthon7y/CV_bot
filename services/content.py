@@ -215,10 +215,12 @@ def get_steampunk_main_cards() -> list[dict]:
                     cards.append({
                         "path": os.path.join(STEAMPUNK_MAIN_DIR, f),
                         "rune_name": rune_name,
-                        "number": str(number)
+                        "number": str(number),
+                        "advice": get_rune_advice(rune_name)
                     })
     except FileNotFoundError:
         logger.warning(f"Папка {STEAMPUNK_MAIN_DIR} не найдена.")
+    logger.info(f"Найдено карт из STEAMPUNK_MAIN: {len(cards)}")
     return cards
 
 
