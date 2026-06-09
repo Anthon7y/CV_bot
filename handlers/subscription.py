@@ -13,12 +13,12 @@ logger = logging.getLogger(__name__)
 UNSUB_IMAGE_PATH = os.path.join(DATA_DIR, "images", "UNSUB.jpg")
 SUB_IMAGE_PATH = os.path.join(DATA_DIR, "images", "SUB.jpg")
 
-# Состояние ожидания подтверждения отписки
-WAITING_UNSUB_CONFIRMATION = 1
+# Состояние ожидания подписки
+WAITING_SUB_CONFIRMATION = 1
 
 
 async def subscription_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Показывает архив рассылок и кнопки подписки/отписки."""
+    """Показывает состояние подписки."""
     user = update.effective_user
     if is_rate_limited(user.id):
         await update.message.reply_text("Слишком много запросов. Подождите секунду.")
@@ -31,51 +31,44 @@ async def subscription_handler(update: Update, context: ContextTypes.DEFAULT_TYP
     # Проверяем статус подписки
     subscribed = is_user_subscribed(user.id)
 
-    broadcasts = get_broadcasts(limit=5)
-
-    if not broadcasts:
-        text = "Архив рассылок\n\n"
-        if is_admin:
-            text += "Пока нет отправленных рассылок.\n"
-            text += "Используйте команду /broadcast для отправки новой рассылки."
-        else:
-            text += "Пока нет отправленных рассылок. Следите за обновлениями!"
-
-        if subscribed:
-            text += "\n\nРассылка активна! Чтобы отписаться напишите /unfollow"
+    if subscribed:
+        # Пользователь подписан - показываем кнопку отписки
+        from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+        keyboard = [[InlineKeyboardButton("Отписаться", callback_data="unsub")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
         
         await update.message.reply_text(
-            text,
-            reply_markup=get_main_menu_keyboard(),
-            parse_mode="Markdown"
+            "Рассылка активна! Чтобы отписаться, нажмите кнопку ниже.",
+            reply_markup=reply_markup
+        )
+    else:
+        # Пользователь отписан - предлагаем подписаться
+        await update.message.reply_text(
+            "Рассылка отключена.\n\n"
+            "Чтобы подписаться на рассылку, используйте команду /follow"
+        )
+
+
+async def follow_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Команда /follow для подписки на рассылку."""
+    user = update.effective_user
+    
+    if is_user_subscribed(user.id):
+        await update.message.reply_text(
+            "Вы уже подписаны на рассылку!"
         )
         return
-
-    text = "Архив рассылок\n\n"
-    for b in broadcasts:
-        sent_at = b["sent_at"]
-        text += f"{sent_at}\n"
-        if b["message_text"]:
-            text += f"{b['message_text'][:100]}...\n"
-        text += "\n"
-
-    if is_admin:
-        text += "Используйте команду /broadcast для отправки новой рассылки.\n"
     
-    if subscribed:
-        text += "\nРассылка активна! Чтобы отписаться напишите /unfollow"
-    else:
-        text += "\nРассылка отключена. Чтобы подписаться, используйте кнопку ниже."
-
+    # Подписываем пользователя
+    toggle_subscription(user.id, True)
+    
     await update.message.reply_text(
-        text,
-        reply_markup=get_main_menu_keyboard(),
-        parse_mode="Markdown"
+        "Рассылка активна! Чтобы отписаться напишите /unfollow"
     )
 
 
 async def subscription_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обрабатывает нажатие кнопок подписки/отписки."""
+    """Обрабатывает нажатие кнопки отписки."""
     query = update.callback_query
     user = query.from_user
 
@@ -85,30 +78,17 @@ async def subscription_callback_handler(update: Update, context: ContextTypes.DE
 
     await query.answer()
 
-    # Получаем текущий статус подписки
+    # Пользователь нажал кнопку отписки
     subscribed = is_user_subscribed(user.id)
     
     if subscribed:
-        # Пользователь подписан - показываем кнопку отписки
-        from telegram import InlineKeyboardMarkup, InlineKeyboardButton
-        keyboard = [[InlineKeyboardButton("Отписаться", callback_data="unsub")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
         await query.edit_message_text(
-            "Рассылка активна! Чтобы отписаться, нажмите кнопку ниже.",
-            reply_markup=reply_markup,
-            parse_mode="Markdown"
+            "Рассылка активна! Чтобы отписаться, используйте команду /unfollow",
+            reply_markup=None
         )
     else:
-        # Пользователь отписан - показываем кнопку подписки
-        from telegram import InlineKeyboardMarkup, InlineKeyboardButton
-        keyboard = [[InlineKeyboardButton("Подписаться", callback_data="sub")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
         await query.edit_message_text(
-            "Рассылка отключена. Чтобы подписаться, нажмите кнопку ниже.",
-            reply_markup=reply_markup,
-            parse_mode="Markdown"
+            "Рассылка отключена.\n\nЧтобы подписаться, используйте команду /follow"
         )
 
 

@@ -21,7 +21,7 @@ from handlers.start import start_handler
 from handlers.prediction import prediction_menu_handler, sphere_callback_handler
 from handlers.runes import runes_menu_handler, rune_callback_handler
 from handlers.about import about_handler, practicum_handler
-from handlers.subscription import subscription_handler, subscription_callback_handler
+from handlers.subscription import subscription_handler, subscription_callback_handler, follow_handler
 from handlers.admin import (
     stats_handler, broadcast_conv_handler, setname_conv_handler, practicum_conv_handler,
     onas_conv_handler, onas_start
@@ -80,6 +80,7 @@ def main():
     app.add_handler(CommandHandler("start", start_handler))
     app.add_handler(CommandHandler("stats", stats_handler))
     app.add_handler(CommandHandler("unfollow", unfollow_handler))
+    app.add_handler(CommandHandler("follow", follow_handler))
     app.add_handler(CommandHandler("yes", handle_yes_no))
     app.add_handler(CommandHandler("no", handle_yes_no))
     app.add_handler(CommandHandler("onas", onas_start))
@@ -90,6 +91,7 @@ def main():
     app.add_handler(practicum_conv_handler)
     app.add_handler(onas_conv_handler)
 
+    # Reply-кнопки главного меню
     # Reply-кнопки главного меню
     app.add_handler(MessageHandler(filters.Regex("^Предсказание на день$"), prediction_menu_handler))
     app.add_handler(MessageHandler(filters.Regex("^Значения рун$"), runes_menu_handler))
