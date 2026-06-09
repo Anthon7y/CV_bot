@@ -5,7 +5,7 @@ from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, Mess
 from services.db import get_stats, get_all_users
 from services.broadcast import broadcast_message
 from services.content import load_practicums, save_practicums
-from config import load_admins, set_bot_name, get_bot_name, PRACTICUMS_FILE, ABOUT_US_FILE
+from config import load_admins, set_bot_name, PRACTICUMS_FILE, ABOUT_US_FILE
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 WAITING_BROADCAST = 1
 WAITING_NEW_NAME = 2
 WAITING_PRACTICUMS = 3
+WAITING_ONAS_TEXT = 4
 
 
 def admin_only(func):
@@ -232,21 +233,18 @@ setname_conv_handler = ConversationHandler(
 
 # --- /onas - управление разделом "О нас" ---
 
-WAITING_ONAS_TEXT = 4
-
-
 @admin_only
 async def onas_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """/onas — редактирование раздела "О нас"."""
-    from config import get_about_text, get_bot_name, ABOUT_US_FILE
+    """/onas — редактирование раздела "О нас".""" 
+    from config import get_about_text, ABOUT_US_FILE
     current = get_about_text()
-    current_name = get_bot_name()
     
-    text = f"*Текущее название:* {current_name}\n\n"
-    text += f"*Текущий текст 'О нас':*\n{current}\n\n"
-    text += "Отправьте новый текст для раздела 'О нас'.\n"
-    text += "Первая строка будет названием бота.\n"
+    text = "Отправьте новый текст для раздела 'О нас'.\n"
+    text += "Этот текст будет отображаться в разделе 'О нас' без заголовка.\n"
     text += "Для отмены введите /cancel"
+    
+    if current:
+        text += f"\n\nТекущий текст:\n{current}"
     
     await update.message.reply_text(text, parse_mode="Markdown")
     return WAITING_ONAS_TEXT
@@ -264,27 +262,9 @@ async def onas_receive(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return WAITING_ONAS_TEXT
 
     try:
-        # Читаем текущий файл
-        try:
-            with open(ABOUT_US_FILE, "r", encoding="utf-8") as f:
-                lines = f.readlines()
-        except FileNotFoundError:
-            lines = []
-        
-        # Первая строка - название
-        first_line = new_text.split("\n")[0] if new_text else "таро и руны"
-        
-        # Остальной текст
-        rest_text = "\n".join(new_text.split("\n")[1:]) if len(new_text.split("\n")) > 1 else ""
-        
-        # Записываем
+        # Записываем весь текст как есть
         with open(ABOUT_US_FILE, "w", encoding="utf-8") as f:
-            f.write(first_line + "\n")
-            if rest_text:
-                f.write(rest_text + "\n")
-        
-        # Обновляем имя бота в памяти
-        set_bot_name(first_line)
+            f.write(new_text + "\n")
         
         await update.message.reply_text(
             "Раздел 'О нас' обновлен!\n\n"
