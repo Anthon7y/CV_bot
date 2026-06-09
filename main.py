@@ -23,8 +23,10 @@ from handlers.runes import runes_menu_handler, rune_callback_handler
 from handlers.about import about_handler, practicum_handler
 from handlers.subscription import subscription_handler, subscription_callback_handler
 from handlers.admin import (
-    stats_handler, broadcast_conv_handler, setname_conv_handler, practicum_conv_handler
+    stats_handler, broadcast_conv_handler, setname_conv_handler, practicum_conv_handler,
+    onas_conv_handler, onas_start
 )
+from handlers.subscription import unfollow_handler, handle_yes_no
 
 
 def setup_logging():
@@ -77,11 +79,16 @@ def main():
     # Команды
     app.add_handler(CommandHandler("start", start_handler))
     app.add_handler(CommandHandler("stats", stats_handler))
+    app.add_handler(CommandHandler("unfollow", unfollow_handler))
+    app.add_handler(CommandHandler("yes", handle_yes_no))
+    app.add_handler(CommandHandler("no", handle_yes_no))
+    app.add_handler(CommandHandler("onas", onas_start))
 
     # ConversationHandlers (должны быть до общих MessageHandler)
     app.add_handler(broadcast_conv_handler)
     app.add_handler(setname_conv_handler)
     app.add_handler(practicum_conv_handler)
+    app.add_handler(onas_conv_handler)
 
     # Reply-кнопки главного меню
     app.add_handler(MessageHandler(filters.Regex("^Предсказание на день$"), prediction_menu_handler))

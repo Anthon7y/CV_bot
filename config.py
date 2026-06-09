@@ -29,6 +29,7 @@ ADVICES_FILE = os.path.join(ROOT_DIR, "Советы.txt")
 # Папки с картами для предсказаний
 STEAMPUNK_DIR = os.path.join(ROOT_DIR, "STEAMPUNK")
 STEAMPUNK2_DIR = os.path.join(ROOT_DIR, "STEAMPUNK2")
+STEAMPUNK_MAIN_DIR = os.path.join(ROOT_DIR, "STEAMPUNK_MAIN")
 
 # Ссылка на покупку колоды (замените на реальную)
 SHOP_LINK = os.getenv("SHOP_LINK", "")
@@ -112,3 +113,32 @@ def get_about_text() -> str:
             return "".join(lines[1:]).strip()
         except FileNotFoundError:
             return "Информация о нас пока недоступна."
+
+
+def set_about_text(text: str) -> None:
+    """Устанавливает текст 'О нас' в корневом файле."""
+    try:
+        with open(ABOUT_US_ROOT, "r", encoding="windows-1251") as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        try:
+            with open(ABOUT_US_FILE, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            lines = []
+    
+    # Обновляем текст (все строки кроме первой)
+    lines = lines[:1] if lines else ["таро и руны\n"]
+    
+    # Добавляем новый текст
+    if text:
+        lines.append("\n" + text)
+    
+    # Записываем в корневой файл
+    try:
+        with open(ABOUT_US_ROOT, "w", encoding="windows-1251") as f:
+            f.writelines(lines)
+    except Exception:
+        # Если не удалось записать в корневой, пробуем в data
+        with open(ABOUT_US_FILE, "w", encoding="utf-8") as f:
+            f.writelines(lines)

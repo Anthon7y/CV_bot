@@ -71,6 +71,23 @@ def upsert_user(user_id: int, username: str, first_name: str, last_name: str):
         """, (user_id, username, first_name, last_name))
 
 
+def toggle_subscription(user_id: int, subscribe: bool):
+    """Подписывает или отписывает пользователя."""
+    with db_cursor() as cur:
+        cur.execute(
+            "UPDATE users SET subscribed = ? WHERE user_id = ?",
+            (1 if subscribe else 0, user_id)
+        )
+
+
+def is_user_subscribed(user_id: int) -> bool:
+    """Проверяет, подписан ли пользователь."""
+    with db_cursor() as cur:
+        cur.execute("SELECT subscribed FROM users WHERE user_id = ?", (user_id,))
+        row = cur.fetchone()
+        return row and row["subscribed"] == 1
+
+
 def get_user(user_id: int):
     with db_cursor() as cur:
         cur.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))

@@ -1,10 +1,11 @@
 import logging
+import os
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
 from services.db import get_stats, get_all_users
 from services.broadcast import broadcast_message
 from services.content import load_practicums, save_practicums
-from config import load_admins, set_bot_name, get_bot_name, PRACTICUMS_FILE
+from config import load_admins, set_bot_name, get_bot_name, PRACTICUMS_FILE, ABOUT_US_FILE
 
 logger = logging.getLogger(__name__)
 
@@ -228,6 +229,92 @@ setname_conv_handler = ConversationHandler(
     fallbacks=[CommandHandler("cancel", setname_cancel)],
     per_user=True,
 )
+
+# --- /onas - управление разделом "О нас" ---
+
+WAITING_ONAS_TEXT = 4
+
+
+@admin_only
+async def onas_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """/onas — редактирование раздела "О нас"."""
+    from config import get_about_text, get_bot_name, ABOUT_US_FILE
+    current = get_about_text()
+    current_name = get_bot_name()
+    
+    text = f"*Текущее название:* {current_name}\n\n"
+    text += f"*Текущий текст 'О нас':*\n{current}\n\n"
+    text += "Отправьте новый текст для раздела 'О нас'.\n"
+    text += "Первая строка будет названием бота.\n"
+    text += "Для отмены введите /cancel"
+    
+    await update.message.reply_text(text, parse_mode="Markdown")
+    return WAITING_ONAS_TEXT
+
+
+async def onas_receive(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    admins = load_admins()
+    if user_id not in admins:
+        return ConversationHandler.END
+
+    new_text = update.message.text.strip()
+    if not new_text:
+        await update.message.reply_text("Текст не может быть пустым. Попробуйте ещё раз или /cancel")
+        return WAITING_ONAS_TEXT
+
+    try:
+        # Читаем текущий файл
+        try:
+            with open(ABOUT_US_FILE, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            lines = []
+        
+        # Первая строка - название
+        first_line = new_text.split("\n")[0] if new_text else "таро и руны"
+        
+        # Остальной текст
+        rest_text = "\n".join(new_text.split("\n")[1:]) if len(new_text.split("\n")) > 1 else ""
+        
+        # Записываем
+        with open(ABOUT_US_FILE, "w", encoding="utf-8") as f:
+            f.write(first_line + "\n")
+            if rest_text:
+                f.write(rest_text + "\n")
+        
+        # Обновляем имя бота в памяти
+        set_bot_name(first_line)
+        
+        await update.message.reply_text(
+            "Раздел 'О нас' обновлен!\n\n"
+            "Изменение вступило в силу немедленно.",
+            parse_mode="Markdown"
+        )
+    except Exception as e:
+        logger.error(f"Ошибка при сохранении 'О нас': {e}")
+        await update.message.reply_text("Ошибка при сохранении. Попробуйте ещё раз.")
+    
+    return ConversationHandler.END
+
+
+async def onas_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Редактирование 'О нас' отменено.")
+    return ConversationHandler.END
+
+
+# ConversationHandler для /onas
+onas_conv_handler = ConversationHandler(
+    entry_points=[CommandHandler("onas", onas_start)],
+    states={
+        WAITING_ONAS_TEXT: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, onas_receive)
+        ],
+    },
+    fallbacks=[CommandHandler("cancel", onas_cancel)],
+    per_user=True,
+)
+
 
 # ConversationHandler для /practicums
 practicum_conv_handler = ConversationHandler(

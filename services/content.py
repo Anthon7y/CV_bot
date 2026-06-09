@@ -1,17 +1,20 @@
 import os
 import random
 import logging
+import re
 from config import (
     DAILY_TEXTS_FILE, DAILY_IMAGES_DIR, RUNES_IMAGES_DIR,
     RUNES_VALUES_FILE, PRACTICUMS_FILE,
     STEAMPUNK_DIR, STEAMPUNK2_DIR, ADVICES_FILE,
-    RUNES_VALUES_ROOT
+    RUNES_VALUES_ROOT, DATA_DIR, STEAMPUNK_MAIN_DIR
 )
 
 logger = logging.getLogger(__name__)
 
 SUPPORTED_IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
+# Путь к PRAC.jpg в папке data
+PRAC_IMAGE_PATH = os.path.join(DATA_DIR, "images", "prac.jpg")
 
 # --- Предсказания ---
 
@@ -49,38 +52,66 @@ def get_random_prediction() -> tuple[str | None, str]:
     return image, text
 
 
-# --- Карты STEAMPUNK ---
+# --- Карты STEAMPUNK (основные 24 руны старшего футарка) ---
 
-# Маппинг номеров файлов на имена рун (только 24 руны старшего футарка)
 RUNE_NAMES_MAP = {
-    "1": "Феху",
-    "2": "Уруз", 
-    "3": "Турисаз",
-    "4": "Ансуз",
-    "5": "Райдо",
-    "6": "Кеназ",
-    "7": "Гебо",
-    "8": "Вуньо",
-    "9": "Хагалаз",
-    "10": "Наутиз",
-    "11": "Иса",
-    "12": "Йера",
-    "13": "Эйваз",
-    "14": "Перт",
-    "15": "Альгиз",
-    "16": "Соуло",
-    "17": "Тейваз",
-    "18": "Беркана",
-    "19": "Эваз",
-    "20": "Манназ",
-    "21": "Лагуз",
-    "22": "Ингуз",
-    "23": "Одал",
-    "24": "Дагаз",
+    1: "Феху",     # FEHU
+    2: "Уруз",     # URUZ
+    3: "Турисаз",  # THURIAZ
+    4: "Ансуз",    # ANSUZ
+    5: "Райдо",    # RAIDO
+    6: "Кеназ",    # KENAZ
+    7: "Гебо",     # GEBO
+    8: "Вуньо",    # WUNJO
+    9: "Хагалаз",  # HAGALAZ
+    10: "Наутиз",  # NAUTHIZ
+    11: "Иса",     # ISA
+    12: "Йера",    # JERA
+    13: "Эйваз",   # EIHWAZ
+    14: "Перт",    # PERTH
+    15: "Альгиз",  # ALGIZ
+    16: "Соуло",   # SOWILO
+    17: "Тейваз",  # TIWAZ
+    18: "Беркана", # BERKANA
+    19: "Эваз",    # EWAZ
+    20: "Манназ",  # MANNAZ
+    21: "Лагуз",   # LAGUZ
+    22: "Ингуз",   # INGUZ
+    23: "Одал",    # OTHALA
+    24: "Дагаз",   # DAGAZ
 }
 
 # Обратный маппинг: имя руны -> номер
-RUNE_NUMBER_MAP = {v.lower(): k for k, v in RUNE_NAMES_MAP.items()}
+RUNE_NAME_TO_NUMBER = {v.lower(): k for k, v in RUNE_NAMES_MAP.items()}
+
+# Маппинг имен из STEAMPUNK_MAIN на стандартные имена рун
+STEAMPUNK_MAIN_NAME_MAP = {
+    "FEHU": "Феху",
+    "URUZ": "Уруз",
+    "THURIAZ": "Турисаз",
+    "ANSUZ": "Ансуз",
+    "RAIDO": "Райдо",
+    "KENAZ": "Кеназ",
+    "GEBO": "Гебо",
+    "WUNJO": "Вуньо",
+    "HAGALAZ": "Хагалаз",
+    "NAUTHIZ": "Наутиз",
+    "ISA": "Иса",
+    "JERA": "Йера",
+    "EIHWAZ": "Эйваз",
+    "PERTH": "Перт",
+    "ALGIZ": "Альгиз",
+    "SOWILO": "Соуло",
+    "TIWAZ": "Тейваз",
+    "BERKANA": "Беркана",
+    "EWAZ": "Эваз",
+    "MANNAZ": "Манназ",
+    "LAGUZ": "Лагуз",
+    "INGUZ": "Ингуз",
+    "OTHALA": "Одал",
+    "DAGAZ": "Дагаз",
+    "VIRD": "Вирд",
+}
 
 
 def load_advices() -> dict[str, str]:
@@ -170,10 +201,12 @@ def get_steampunk2_cards() -> list[dict]:
 def get_random_steampunk_card(sphere: str = "general") -> dict | None:
     """
     Возвращает случайную карту.
-    sphere: "relations" (STEAMPUNK), "money" (STEAMPUNK2), "advice" (STEAMPUNK)
+    sphere: "relations" (STEAMPUNK), "money" (STEAMPUNK2), "advice" (STEAMPUNK_MAIN)
     """
     if sphere == "money":
         cards = get_steampunk2_cards()
+    elif sphere == "advice":
+        cards = get_steampunk_main_cards()
     else:
         cards = get_steampunk_cards()
     
@@ -183,6 +216,31 @@ def get_random_steampunk_card(sphere: str = "general") -> dict | None:
     card = random.choice(cards)
     card["advice"] = get_rune_advice(card["rune_name"])
     return card
+
+
+def get_steampunk_main_cards() -> list[dict]:
+    """Возвращает список карт из папки STEAMPUNK_MAIN с именами рун."""
+    cards = []
+    try:
+        for f in os.listdir(STEAMPUNK_MAIN):
+            name, ext = os.path.splitext(f)
+            if ext.lower() not in SUPPORTED_IMAGE_EXTS:
+                continue
+            
+            # Извлекаем номер из имени файла (например, "1 - FEHU_maket.png" -> "1")
+            number_match = re.match(r'^(\d+)\s*-\s*[A-Z]+', name)
+            if number_match:
+                number = int(number_match.group(1))
+                if number in RUNE_NAMES_MAP:
+                    rune_name = RUNE_NAMES_MAP[number]
+                    cards.append({
+                        "path": os.path.join(STEAMPUNK_MAIN, f),
+                        "rune_name": rune_name,
+                        "number": str(number)
+                    })
+    except FileNotFoundError:
+        logger.warning(f"Папка {STEAMPUNK_MAIN} не найдена.")
+    return cards
 
 
 # --- Справочник рун ---
