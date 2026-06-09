@@ -108,9 +108,9 @@ def load_admins() -> set[int]:
 def get_about_text() -> str:
     """Возвращает текст 'О нас' из корневого файла."""
     try:
-        with open(ABOUT_US_ROOT, "r", encoding="utf-8") as f:
+        # Сначала пробуем windows-1251 (старый файл)
+        with open(ABOUT_US_ROOT, "r", encoding="windows-1251") as f:
             content = f.read().strip()
-        # Если файл пустой, возвращаем пусто
         if not content:
             return ""
         
@@ -131,7 +131,7 @@ def get_about_text() -> str:
                 pass
             # Иначе это текст
             return content
-    except FileNotFoundError:
+    except (FileNotFoundError, UnicodeDecodeError):
         pass
     
     # Fallback на data/about_us.txt
