@@ -101,18 +101,25 @@ def load_admins() -> set[int]:
 
 
 def get_about_text() -> str:
-    """Возвращает текст 'О нас' из корневого файла (всё кроме первой строки)."""
+    """Возвращает текст 'О нас' из корневого файла (всё кроме первой строки - названия)."""
     try:
-        with open(ABOUT_US_ROOT, "r", encoding="windows-1251") as f:
+        with open(ABOUT_US_ROOT, "r", encoding="utf-8") as f:
             lines = f.readlines()
-        return "".join(lines[1:]).strip()
-    except FileNotFoundError:
-        try:
-            with open(ABOUT_US_FILE, "r", encoding="utf-8") as f:
-                lines = f.readlines()
+        if len(lines) > 1:
             return "".join(lines[1:]).strip()
-        except FileNotFoundError:
-            return "Информация о нас пока недоступна."
+        return ""
+    except FileNotFoundError:
+        pass
+    
+    # Fallback на data/about_us.txt
+    try:
+        with open(ABOUT_US_FILE, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        if len(lines) > 1:
+            return "".join(lines[1:]).strip()
+        return ""
+    except FileNotFoundError:
+        return "Информация о нас пока недоступна."
 
 
 def set_about_text(text: str) -> None:
