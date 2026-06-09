@@ -12,12 +12,12 @@ SEND_DELAY = 0.02
 async def broadcast_message(bot: Bot, source_message: Message, user_ids: list[int] = None) -> tuple[int, int]:
     """
     Пересылает сообщение указанным пользователям.
-    Если user_ids не передан — использует всех пользователей.
+    Если user_ids не передан — использует только подписанных пользователей.
     Возвращает (успешно, ошибок).
     """
     if user_ids is None:
-        from services.db import get_all_users
-        user_ids = get_all_users()
+        from services.db import get_subscribed_users
+        user_ids = get_subscribed_users()
 
     if not user_ids:
         logger.warning("Нет пользователей для рассылки.")

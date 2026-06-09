@@ -1,4 +1,5 @@
 import logging
+import os
 from telegram import Update
 from telegram.ext import ContextTypes
 from services.content import get_all_rune_names, get_rune_info, get_rune_image, RUNES_IMAGES_DIR
@@ -58,7 +59,7 @@ async def rune_callback_handler(update: Update, context: ContextTypes.DEFAULT_TY
     image_path = get_rune_image(rune_name)
 
     # Отправляем картинку с описанием
-    if image_path:
+    if image_path and os.path.exists(image_path):
         caption = f"*{rune_name}*\n\n"
         
         if info and info.get("value"):

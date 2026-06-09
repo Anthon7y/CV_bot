@@ -23,6 +23,9 @@ RUNES_IMAGES_DIR = os.path.join(ROOT_DIR, "Руны для бота")
 RUNES_VALUES_FILE = os.path.join(DATA_DIR, "texts", "runes_values.txt")
 PRACTICUMS_FILE = os.path.join(DATA_DIR, "practicums.txt")
 
+# Папка с картинками рун
+RUNES_FOLDER_DIR = os.path.join(ROOT_DIR, "Руны для бота")
+
 # Файлы в корне проекта
 ABOUT_US_ROOT = os.path.join(ROOT_DIR, "about_us.txt")
 RUNES_VALUES_ROOT = os.path.join(ROOT_DIR, "Значения рун.txt")
@@ -103,13 +106,31 @@ def load_admins() -> set[int]:
 
 
 def get_about_text() -> str:
-    """Возвращает текст 'О нас' из корневого файла (всё кроме первой строки - названия)."""
+    """Возвращает текст 'О нас' из корневого файла."""
     try:
         with open(ABOUT_US_ROOT, "r", encoding="utf-8") as f:
-            lines = f.readlines()
+            content = f.read().strip()
+        # Если файл пустой, возвращаем пусто
+        if not content:
+            return ""
+        
+        # Пытаемся найти название бота (первая строка должна совпадать с именем бота)
+        lines = content.split("\n")
         if len(lines) > 1:
-            return "".join(lines[1:]).strip()
-        return ""
+            # Есть хотя бы две строки - считаем первую название
+            return "\n".join(lines[1:]).strip()
+        else:
+            # Только одна строка - это либо название, либо текст
+            # Если это название бота, возвращаем пустой текст
+            try:
+                with open(ABOUT_US_FILE, "r", encoding="utf-8") as f:
+                    bot_name = f.readline().strip()
+                if content == bot_name:
+                    return ""
+            except:
+                pass
+            # Иначе это текст
+            return content
     except FileNotFoundError:
         pass
     

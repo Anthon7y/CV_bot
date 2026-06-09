@@ -16,6 +16,9 @@ SUPPORTED_IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 # Путь к PRAC.jpg в папке data
 PRAC_IMAGE_PATH = os.path.join(DATA_DIR, "images", "prac.jpg")
 
+# Путь к папке с картинками рун
+RUNES_FOLDER_DIR = os.path.join(DATA_DIR, "..", "Руны для бота")  # parent of data
+
 # --- Предсказания ---
 
 def get_daily_texts() -> list[str]:
@@ -227,9 +230,9 @@ def get_steampunk_main_cards() -> list[dict]:
 # --- Справочник рун ---
 
 def get_rune_image(rune_name: str) -> str | None:
-    """Ищет изображение руны по английскому имени (например, 'Fehu')."""
+    """Ищет изображение руны по английскому имени (например, 'Fehu') из папки 'Руны для бота'."""
     try:
-        for f in os.listdir(RUNES_IMAGES_DIR):
+        for f in os.listdir(RUNES_FOLDER_DIR):
             name, ext = os.path.splitext(f)
             if ext.lower() not in SUPPORTED_IMAGE_EXTS:
                 continue
@@ -243,7 +246,7 @@ def get_rune_image(rune_name: str) -> str | None:
                 eng_name = name
             
             if eng_name.lower() == rune_name.lower():
-                return os.path.join(RUNES_IMAGES_DIR, f)
+                return os.path.join(RUNES_FOLDER_DIR, f)
     except FileNotFoundError:
         pass
     return None

@@ -2,7 +2,7 @@ import logging
 import os
 from telegram import Update
 from telegram.ext import ContextTypes
-from config import get_about_text, get_bot_name, DATA_DIR
+from config import get_about_text, get_bot_name, DATA_DIR, RUNES_FOLDER_DIR
 from services.content import load_practicums, PRAC_IMAGE_PATH
 from keyboards.main_menu import get_main_menu_keyboard
 
