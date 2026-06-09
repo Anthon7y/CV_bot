@@ -2,7 +2,7 @@ import logging
 import os
 from telegram import Update
 from telegram.ext import ContextTypes
-from services.content import get_all_rune_names, get_rune_info, get_rune_image, RUNES_IMAGES_DIR
+from services.content import get_all_rune_names, get_rune_info, get_rune_image
 from services.db import increment_rune_stat
 from keyboards.inline import get_runes_keyboard
 from keyboards.main_menu import get_main_menu_keyboard
