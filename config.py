@@ -8,20 +8,22 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
+# Путь к корню проекта
+ROOT_DIR = os.path.dirname(__file__)
+
 # Путь к папке с данными
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+DATA_DIR = os.path.join(ROOT_DIR, "data")
 
 ABOUT_US_FILE = os.path.join(DATA_DIR, "about_us.txt")
 ADMINS_FILE = os.path.join(DATA_DIR, "admins.txt")
 DB_FILE = os.path.join(DATA_DIR, "bot.db")
 DAILY_TEXTS_FILE = os.path.join(DATA_DIR, "texts", "daily.txt")
 DAILY_IMAGES_DIR = os.path.join(DATA_DIR, "images", "daily")
-RUNES_IMAGES_DIR = os.path.join(DATA_DIR, "runes")
+RUNES_IMAGES_DIR = os.path.join(ROOT_DIR, "Руны для бота")
 RUNES_VALUES_FILE = os.path.join(DATA_DIR, "texts", "runes_values.txt")
 PRACTICUMS_FILE = os.path.join(DATA_DIR, "practicums.txt")
 
 # Файлы в корне проекта
-ROOT_DIR = os.path.dirname(__file__)
 ABOUT_US_ROOT = os.path.join(ROOT_DIR, "about_us.txt")
 RUNES_VALUES_ROOT = os.path.join(ROOT_DIR, "Значения рун.txt")
 ADVICES_FILE = os.path.join(ROOT_DIR, "Советы.txt")

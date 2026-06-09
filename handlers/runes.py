@@ -1,7 +1,7 @@
 import logging
 from telegram import Update
 from telegram.ext import ContextTypes
-from services.content import get_all_rune_names, get_rune_info
+from services.content import get_all_rune_names, get_rune_info, get_rune_image, RUNES_IMAGES_DIR
 from services.db import increment_rune_stat
 from keyboards.inline import get_runes_keyboard
 from keyboards.main_menu import get_main_menu_keyboard
@@ -36,7 +36,7 @@ async def runes_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 async def rune_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Отправляет информацию по выбранной руне."""
+    """Отправляет картинку и информацию по выбранной руне."""
     query = update.callback_query
     user = query.from_user
 
@@ -53,7 +53,34 @@ async def rune_callback_handler(update: Update, context: ContextTypes.DEFAULT_TY
 
     # Получаем информацию о руне
     info = get_rune_info(rune_name)
+    
+    # Получаем картинку руны
+    image_path = get_rune_image(rune_name)
 
+    # Отправляем картинку с описанием
+    if image_path:
+        caption = f"*{rune_name}*\n\n"
+        
+        if info and info.get("value"):
+            caption += f"{info['value']}\n\n"
+        
+        if info and info.get("value_pp"):
+            caption += f"{info['value_pp']}"
+        
+        try:
+            with open(image_path, "rb") as img:
+                await query.message.reply_photo(
+                    photo=img,
+                    caption=caption,
+                    parse_mode="Markdown"
+                )
+            # Удаляем сообщение с выбором руны
+            await query.message.delete()
+            return
+        except Exception as e:
+            logger.warning(f"Не удалось отправить картинку {image_path}: {e}")
+    
+    # Если картинку не удалось отправить, отправляем текст
     if not info:
         await query.message.reply_text(
             f"*{rune_name}*\n\n"

@@ -227,11 +227,22 @@ def get_steampunk_main_cards() -> list[dict]:
 # --- Справочник рун ---
 
 def get_rune_image(rune_name: str) -> str | None:
-    """Ищет изображение руны по имени файла в папке runes/."""
+    """Ищет изображение руны по английскому имени (например, 'Fehu')."""
     try:
         for f in os.listdir(RUNES_IMAGES_DIR):
             name, ext = os.path.splitext(f)
-            if name.lower() == rune_name.lower() and ext.lower() in SUPPORTED_IMAGE_EXTS:
+            if ext.lower() not in SUPPORTED_IMAGE_EXTS:
+                continue
+            
+            # Извлекаем английское имя из названия файла (например, '01.Fehu.jpeg' -> 'Fehu')
+            # Формат: NN.RUNE_NAME.ext или просто RUNE_NAME.ext
+            name_parts = name.split(".")
+            if len(name_parts) >= 2:
+                eng_name = name_parts[-1]  # Последняя часть после точки - английское имя
+            else:
+                eng_name = name
+            
+            if eng_name.lower() == rune_name.lower():
                 return os.path.join(RUNES_IMAGES_DIR, f)
     except FileNotFoundError:
         pass
