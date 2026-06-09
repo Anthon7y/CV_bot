@@ -94,8 +94,12 @@ async def sphere_callback_handler(update: Update, context: ContextTypes.DEFAULT_
     set_last_prediction_date(user.id, date.today())
 
     # Отправляем карту с текстом
+    # Для больших картинок используем reply_photo с предварительной загрузкой
+    # или отправляем только текст если картинка не загружается
+    
     try:
         with open(card["path"], "rb") as img:
+            # Используем reply_photo вместо edit_message_text для новой картинки
             await query.message.reply_photo(
                 photo=img,
                 caption=caption,
@@ -105,4 +109,5 @@ async def sphere_callback_handler(update: Update, context: ContextTypes.DEFAULT_
         await query.message.delete()
     except Exception as e:
         logger.warning(f"Не удалось отправить картинку {card['path']}: {e}")
+        # Если картинка не отправилась, отправляем только текст
         await query.edit_message_text(caption, parse_mode="Markdown")
