@@ -77,7 +77,7 @@ async def sphere_callback_handler(update: Update, context: ContextTypes.DEFAULT_
 
     if not card:
         await query.edit_message_text(
-            "Карты пока недоступны. Добавьте изображения в папки STEAMPUNK/ или STEAMPUNK2/"
+            "Карты пока недоступны. Добавьте изображения в папку STEAMPUNK/"
         )
         return
 

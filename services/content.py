@@ -162,52 +162,29 @@ def get_steampunk_cards() -> list[dict]:
             
             # Извлекаем номер из имени файла (например, "1fehu" -> "1")
             number = "".join(c for c in name if c.isdigit())
-            if number and number in RUNE_NAMES_MAP:
-                rune_name = RUNE_NAMES_MAP[number]
-                cards.append({
-                    "path": os.path.join(STEAMPUNK_DIR, f),
-                    "rune_name": rune_name,
-                    "number": number
-                })
+            if number:
+                number_int = int(number)
+                if number_int in RUNE_NAMES_MAP:
+                    rune_name = RUNE_NAMES_MAP[number_int]
+                    cards.append({
+                        "path": os.path.join(STEAMPUNK_DIR, f),
+                        "rune_name": rune_name,
+                        "number": number
+                    })
     except FileNotFoundError:
         logger.warning(f"Папка {STEAMPUNK_DIR} не найдена.")
-    return cards
-
-
-def get_steampunk2_cards() -> list[dict]:
-    """Возвращает список карт из папки STEAMPUNK2 (тема Деньги)."""
-    cards = []
-    try:
-        for f in os.listdir(STEAMPUNK2_DIR):
-            name, ext = os.path.splitext(f)
-            if ext.lower() not in SUPPORTED_IMAGE_EXTS:
-                continue
-            
-            # Извлекаем номер из имени файла (например, "1 богатство и прибыль" -> "1")
-            number = "".join(c for c in name if c.isdigit())
-            if number and number in RUNE_NAMES_MAP:
-                rune_name = RUNE_NAMES_MAP[number]
-                cards.append({
-                    "path": os.path.join(STEAMPUNK2_DIR, f),
-                    "rune_name": rune_name,
-                    "number": number,
-                    "theme": "Деньги"
-                })
-    except FileNotFoundError:
-        logger.warning(f"Папка {STEAMPUNK2_DIR} не найдена.")
     return cards
 
 
 def get_random_steampunk_card(sphere: str = "general") -> dict | None:
     """
     Возвращает случайную карту.
-    sphere: "relations" (STEAMPUNK), "money" (STEAMPUNK2), "advice" (STEAMPUNK_MAIN)
+    sphere: "relations" (STEAMPUNK), "advice" (STEAMPUNK_MAIN)
     """
-    if sphere == "money":
-        cards = get_steampunk2_cards()
-    elif sphere == "advice":
+    if sphere == "advice":
         cards = get_steampunk_main_cards()
     else:
+        # По умолчанию и для relations используем STEAMPUNK
         cards = get_steampunk_cards()
     
     if not cards:
