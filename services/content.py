@@ -201,7 +201,7 @@ def get_steampunk_main_cards() -> list[dict]:
     """Возвращает список карт из папки STEAMPUNK_MAIN с именами рун."""
     cards = []
     try:
-        for f in os.listdir(STEAMPUNK_MAIN):
+        for f in os.listdir(STEAMPUNK_MAIN_DIR):
             name, ext = os.path.splitext(f)
             if ext.lower() not in SUPPORTED_IMAGE_EXTS:
                 continue
@@ -213,12 +213,12 @@ def get_steampunk_main_cards() -> list[dict]:
                 if number in RUNE_NAMES_MAP:
                     rune_name = RUNE_NAMES_MAP[number]
                     cards.append({
-                        "path": os.path.join(STEAMPUNK_MAIN, f),
+                        "path": os.path.join(STEAMPUNK_MAIN_DIR, f),
                         "rune_name": rune_name,
                         "number": str(number)
                     })
     except FileNotFoundError:
-        logger.warning(f"Папка {STEAMPUNK_MAIN} не найдена.")
+        logger.warning(f"Папка {STEAMPUNK_MAIN_DIR} не найдена.")
     return cards
 
 
