@@ -179,10 +179,12 @@ def get_steampunk_cards() -> list[dict]:
 def get_random_steampunk_card(sphere: str = "general") -> dict | None:
     """
     Возвращает случайную карту.
-    sphere: "relations" (STEAMPUNK), "money" (STEAMPUNK_MAIN), "advice" (STEAMPUNK_MAIN)
+    sphere: "relations" (STEAMPUNK), "money" (STEAMPUNK_MAIN), "advice" (STEAMPUNK)
     """
-    if sphere in ("money", "advice"):
+    if sphere == "money":
         cards = get_steampunk_main_cards()
+    elif sphere == "advice":
+        cards = get_steampunk_cards()
     else:
         # По умолчанию и для relations используем STEAMPUNK
         cards = get_steampunk_cards()
