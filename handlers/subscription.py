@@ -82,10 +82,20 @@ async def subscription_callback_handler(update: Update, context: ContextTypes.DE
     subscribed = is_user_subscribed(user.id)
     
     if subscribed:
-        await query.edit_message_text(
-            "Рассылка активна! Чтобы отписаться, используйте команду /unfollow",
-            reply_markup=None
-        )
+        # Показываем картинку с вопросом
+        if os.path.exists(UNSUB_IMAGE_PATH):
+            with open(UNSUB_IMAGE_PATH, "rb") as img:
+                await query.message.reply_photo(
+                    photo=img,
+                    caption="Вы уверены? /yes /no"
+                )
+        else:
+            await query.message.reply_text("Вы уверены? /yes /no")
+        
+        # Удаляем сообщение с кнопкой
+        await query.message.delete()
+        # Сохраняем состояние
+        context.user_data["awaiting_unsub_confirmation"] = True
     else:
         await query.edit_message_text(
             "Рассылка отключена.\n\nЧтобы подписаться, используйте команду /follow"
