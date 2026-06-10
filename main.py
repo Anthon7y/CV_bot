@@ -89,12 +89,6 @@ def main():
     # Обработка текста от пользователей которые ждут отправки для /onas
     app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.PRIVATE, onas_receive_text))
 
-    # ConversationHandlers (должны быть до общих MessageHandler)
-    app.add_handler(broadcast_conv_handler)
-    app.add_handler(setname_conv_handler)
-    app.add_handler(practicum_conv_handler)
-    app.add_handler(onas_conv_handler)
-
     # Reply-кнопки главного меню
     # Reply-кнопки главного меню
     app.add_handler(MessageHandler(filters.Regex("^Предсказание на день$"), prediction_menu_handler))
