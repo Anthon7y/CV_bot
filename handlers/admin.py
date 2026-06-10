@@ -317,9 +317,12 @@ async def onas_receive_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Возвращаем в главное меню
     from keyboards.main_menu import get_main_menu_keyboard
     await update.message.reply_text(
-        "Главное меню",
-        reply_markup=get_main_menu_keyboard()
+        "Раздел 'О нас' обновлен!",
+        reply_markup=get_main_menu_keyboard(),
+        parse_mode="Markdown"
     )
+    
+    return ConversationHandler.END
 
 
 async def onas_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
