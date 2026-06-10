@@ -289,13 +289,17 @@ def get_rune_image(rune_name: str) -> str | None:
             
             # Извлекаем английское имя из названия файла (например, '01.Fehu.jpeg' -> 'Fehu')
             # Формат: NN.RUNE_NAME.ext или просто RUNE_NAME.ext
+            # Пробелы в имени руны возможны (например "Raido new")
             name_parts = name.split(".")
             if len(name_parts) >= 2:
-                img_eng_name = name_parts[-1]  # Последняя часть после точки - английское имя
+                eng_name_from_file = name_parts[-1]  # Последняя часть после точки - английское имя
             else:
-                img_eng_name = name
+                eng_name_from_file = name
             
-            if img_eng_name.lower() == eng_name.lower():
+            # Убираем " new" если есть (для файлов вроде "Raido new.png")
+            eng_name_from_file = eng_name_from_file.replace(" new", "").strip()
+            
+            if eng_name_from_file.lower() == eng_name.lower():
                 return os.path.join(RUNES_IMAGES_DIR, f)
     except FileNotFoundError:
         pass
