@@ -235,37 +235,29 @@ setname_conv_handler = ConversationHandler(
 # --- /onas - управление разделом "О нас" ---
 
 async def onas_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """/onas — редактирование раздела "О нас".""" 
-    from config import ABOUT_US_ROOT, ABOUT_US_FILE, load_admins
+    """ /onas — редактирование раздела "О нас". """
+    logger.info("onas_start called")
     
     # Проверка прав администратора
+    from config import load_admins
     user_id = update.effective_user.id
     admins = load_admins()
     logger.info(f"onas_start: user_id={user_id}, admins={admins}, is_admin={user_id in admins}")
     
     if user_id not in admins:
+        logger.info("onas_start: user not admin")
         await update.message.reply_text("У вас нет доступа к этой команде.")
         return ConversationHandler.END
     
-    # Читаем весь файл целиком
-    try:
-        with open(ABOUT_US_ROOT, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-        if len(lines) > 1:
-            current = "".join(lines[1:]).strip()
-        else:
-            current = ""
-    except FileNotFoundError:
-        current = ""
+    logger.info("onas_start: user is admin, showing prompt")
     
-    text = "Отправьте новый текст для раздела 'О нас'.\n"
-    text += "Этот текст будет отображаться в разделе 'О нас' без заголовка.\n"
-    text += "Для отмены введите /cancel"
-    
-    if current:
-        text += f"\n\nТекущий текст:\n{current}"
-    
-    await update.message.reply_text(text, parse_mode="Markdown")
+    # Показываем инструкцию
+    await update.message.reply_text(
+        "Отправьте новый текст для раздела 'О нас'.\n"
+        "Этот текст будет отображаться в разделе 'О нас' без заголовка.\n"
+        "Для отмены введите /cancel",
+        parse_mode="Markdown"
+    )
     return WAITING_ONAS_TEXT
 
 
