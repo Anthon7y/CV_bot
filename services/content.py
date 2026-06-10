@@ -320,3 +320,28 @@ def save_practicums(text: str) -> None:
     """Сохраняет текст практикумов."""
     with open(PRACTICUMS_FILE, "w", encoding="utf-8") as f:
         f.write(text)
+
+
+def format_admin_text(text: str) -> str:
+    """
+    Форматирует текст для админа по маркерам:
+    *text* → жирный (Markdown)
+    _text_ → курсив (Markdown)
+    =text= → подчеркнутый (HTML)
+    $text$ → зачеркнутый (HTML)
+    """
+    import re
+    
+    # Обработка подчеркивания (HTML) - делаем первым чтобы не пересекаться
+    text = re.sub(r'=([^=]+)=', r'<u>\1</u>', text)
+    
+    # Обработка зачеркивания (HTML)
+    text = re.sub(r'\$([^\$]+)\$', r'<s>\1</s>', text)
+    
+    # Обработка жирного (Markdown) - используем **text**
+    text = re.sub(r'\*([^\*]+)\*', r'*\1*', text)
+    
+    # Обработка курсива (Markdown) - используем _text_
+    text = re.sub(r'_([^_]+)_', r'_\1_', text)
+    
+    return text

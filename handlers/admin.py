@@ -2,10 +2,10 @@ import logging
 import os
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
-from services.db import get_stats, get_all_users
+from services.db import get_stats
 from services.broadcast import broadcast_message
-from services.content import load_practicums, save_practicums
-from config import load_admins, set_bot_name, PRACTICUMS_FILE, ABOUT_US_FILE
+from services.content import load_practicums, save_practicums, format_admin_text
+from config import load_admins, set_bot_name, PRACTICUMS_FILE, ABOUT_US_FILE, ABOUT_US_ROOT
 
 logger = logging.getLogger(__name__)
 
@@ -47,10 +47,11 @@ async def stats_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @admin_only
 async def broadcast_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """/broadcast — начало рассылки."""
-    total = len(get_all_users())
+    from services.db import get_subscribed_users
+    total = len(get_subscribed_users())
     await update.message.reply_text(
         f"Режим рассылки\n\n"
-        f"Сообщение будет отправлено *всем {total} пользователям* бота.\n\n"
+        f"Сообщение будет отправлено *всем {total} подписанным пользователям* бота.\n\n"
         f"Отправьте сообщение (текст, фото, видео, документ).\n"
         f"Для отмены введите /cancel",
         parse_mode="Markdown"
@@ -70,9 +71,8 @@ async def broadcast_receive(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     status_msg = await update.message.reply_text("Рассылка запущена...")
 
-    # Получаем ВСЕХ пользователей
-    user_ids = get_all_users()
-    success, failed = await broadcast_message(context.bot, update.message, user_ids)
+    # Отправляем только подписанным пользователям
+    success, failed = await broadcast_message(context.bot, update.message)
 
     # Сохраняем рассылку в БД
     from services.db import save_broadcast
@@ -236,8 +236,17 @@ setname_conv_handler = ConversationHandler(
 @admin_only
 async def onas_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """/onas — редактирование раздела "О нас".""" 
-    from config import get_about_text, ABOUT_US_FILE
-    current = get_about_text()
+    from config import ABOUT_US_ROOT, ABOUT_US_FILE
+    # Читаем весь файл целиком
+    try:
+        with open(ABOUT_US_ROOT, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        if len(lines) > 1:
+            current = "".join(lines[1:]).strip()
+        else:
+            current = ""
+    except FileNotFoundError:
+        current = ""
     
     text = "Отправьте новый текст для раздела 'О нас'.\n"
     text += "Этот текст будет отображаться в разделе 'О нас' без заголовка.\n"
@@ -262,8 +271,8 @@ async def onas_receive(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return WAITING_ONAS_TEXT
 
     try:
-        # Записываем весь текст как есть
-        with open(ABOUT_US_FILE, "w", encoding="utf-8") as f:
+        # Записываем весь текст в корневой файл (ABOUT_US_ROOT)
+        with open(ABOUT_US_ROOT, "w", encoding="utf-8") as f:
             f.write(new_text + "\n")
         
         await update.message.reply_text(

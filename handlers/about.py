@@ -10,33 +10,43 @@ logger = logging.getLogger(__name__)
 
 
 async def about_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    from services.content import format_admin_text
     text = get_about_text()
 
     if not text:
         text = "Информация о нас пока не добавлена."
 
+    # Применяем форматирование
+    formatted_text = format_admin_text(text)
+
     await update.message.reply_text(
-        text,
+        formatted_text,
         reply_markup=get_main_menu_keyboard(),
-        parse_mode="Markdown"
+        parse_mode="HTML"
     )
 
 
 async def practicum_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Показывает практикумы."""
+    from services.content import load_practicums, PRAC_IMAGE_PATH, format_admin_text
     practicum_text = load_practicums()
 
     if practicum_text:
+        # Применяем форматирование
+        formatted_text = format_admin_text(practicum_text)
+        
         # Отправляем текст практикума с фото PRAC.jpg
         if os.path.exists(PRAC_IMAGE_PATH):
             with open(PRAC_IMAGE_PATH, "rb") as img:
                 await update.message.reply_photo(
                     photo=img,
-                    caption=practicum_text
+                    caption=formatted_text,
+                    parse_mode="HTML"
                 )
         else:
             await update.message.reply_text(
-                practicum_text
+                formatted_text,
+                parse_mode="HTML"
             )
     else:
         await update.message.reply_text(
