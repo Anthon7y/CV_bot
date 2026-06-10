@@ -234,10 +234,19 @@ setname_conv_handler = ConversationHandler(
 
 # --- /onas - управление разделом "О нас" ---
 
-@admin_only
 async def onas_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """/onas — редактирование раздела "О нас".""" 
-    from config import ABOUT_US_ROOT, ABOUT_US_FILE
+    from config import ABOUT_US_ROOT, ABOUT_US_FILE, load_admins
+    
+    # Проверка прав администратора
+    user_id = update.effective_user.id
+    admins = load_admins()
+    logger.info(f"onas_start: user_id={user_id}, admins={admins}, is_admin={user_id in admins}")
+    
+    if user_id not in admins:
+        await update.message.reply_text("У вас нет доступа к этой команде.")
+        return ConversationHandler.END
+    
     # Читаем весь файл целиком
     try:
         with open(ABOUT_US_ROOT, "r", encoding="utf-8") as f:

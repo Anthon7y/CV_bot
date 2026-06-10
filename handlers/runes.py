@@ -37,7 +37,7 @@ async def runes_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 async def rune_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Отправляет картинку и информацию по выбранной руне."""
+    """Отправляет только картинку руны без текста."""
     query = update.callback_query
     user = query.from_user
 
@@ -52,53 +52,18 @@ async def rune_callback_handler(update: Update, context: ContextTypes.DEFAULT_TY
     # Считаем статистику
     increment_rune_stat(rune_name)
 
-    # Получаем информацию о руне
-    info = get_rune_info(rune_name)
-    
     # Получаем картинку руны
     image_path = get_rune_image(rune_name)
 
-    # Отправляем картинку без текста
+    # Отправляем только картинку
     if image_path and os.path.exists(image_path):
         try:
             with open(image_path, "rb") as img:
                 await query.message.reply_photo(photo=img)
+            # Удаляем сообщение с выбором руны
+            await query.message.delete()
         except Exception as e:
             logger.warning(f"Не удалось отправить картинку {image_path}: {e}")
-    
-    # Если есть описание, отправляем текстом
-    if info and (info.get("value") or info.get("value_pp")):
-        text = f"*{rune_name}*\n\n"
-        
-        if info.get("value"):
-            text += f"{info['value']}\n\n"
-        
-        if info.get("value_pp"):
-            text += f"{info['value_pp']}"
-        
-        await query.message.reply_text(text, parse_mode="Markdown")
-    
-    # Удаляем сообщение с выбором руны
-    try:
-        await query.message.delete()
-    except:
+    else:
+        # Если картинки нет - ничего не отправляем
         pass
-    
-    # Если картинку не удалось отправить, отправляем текст
-    if not info:
-        await query.message.reply_text(
-            f"*{rune_name}*\n\n"
-            f"Описание руны пока недоступно.",
-            parse_mode="Markdown"
-        )
-        return
-
-    text = f"*{rune_name}*\n\n"
-    
-    if info.get("value"):
-        text += f"{info['value']}\n\n"
-    
-    if info.get("value_pp"):
-        text += f"{info['value_pp']}"
-
-    await query.message.reply_text(text, parse_mode="Markdown")
