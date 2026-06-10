@@ -226,8 +226,61 @@ def get_steampunk_main_cards() -> list[dict]:
 
 # --- Справочник рун ---
 
+# Маппинг русских имен на английские
+RUNE_NAME_MAP_RU_TO_EN = {
+    "Феху": "Fehu",
+    "Уруз": "Uruz",
+    "Турисаз": "Thurisaz",
+    "Турисаз ПП": "Thurisaz",
+    "Ансуз": "Ansuz",
+    "Ансуз ПП": "Ansuz",
+    "Райдо": "Raido",
+    "Райдо ПП": "Raido",
+    "Кеназ": "Kenaz",
+    "Кеназ ПП": "Kenaz",
+    "Гебо": "Gebo",
+    "Гебо в негативе": "Gebo",
+    "Вуньо": "Wunjo",
+    "Вуньо ПП": "Wunjo",
+    "Хагалаз": "Hagalaz",
+    "Хагалаз в негативе": "Hagalaz",
+    "Наутиз": "Nauthiz",
+    "Наутиз в негативе": "Nauthiz",
+    "Иса": "Isa",
+    "Иса в негативе": "Isa",
+    "Йера": "Jera",
+    "Йера в негативе": "Jera",
+    "Эйваз": "Eihwaz",
+    "Эйваз в негативе": "Eihwaz",
+    "Перт": "Perth",
+    "Перт в негативе": "Perth",
+    "Альгиз": "Algiz",
+    "Альгиз ПП": "Algiz",
+    "Соуло": "Sowilo",
+    "Соуло в негативе": "Sowilo",
+    "Тейваз": "Tiwaz",
+    "Тейваз в негативе": "Tiwaz",
+    "Беркана": "Berkana",
+    "Беркана ПП": "Berkana",
+    "Эваз": "Ewaz",
+    "Эваз ПП": "Ewaz",
+    "Манназ": "Mannaz",
+    "Манназ ПП": "Mannaz",
+    "Лагуз": "Laguz",
+    "Лагуз в негативе": "Laguz",
+    "Ингуз": "Inguz",
+    "Ингуз в негативе": "Inguz",
+    "Одал": "Othala",
+    "Одал ПП": "Othala",
+    "Дагаз": "Dagaz",
+    "Дагаз в негативе": "Dagaz",
+}
+
 def get_rune_image(rune_name: str) -> str | None:
-    """Ищет изображение руны по английскому имени (например, 'Fehu') из папки RUNES_IMAGES_DIR."""
+    """Ищет изображение руны по английскому или русскому имени из папки RUNES_IMAGES_DIR."""
+    # Если пришло русское имя, переводим в английское
+    eng_name = RUNE_NAME_MAP_RU_TO_EN.get(rune_name, rune_name)
+    
     try:
         for f in os.listdir(RUNES_IMAGES_DIR):
             name, ext = os.path.splitext(f)
@@ -238,11 +291,11 @@ def get_rune_image(rune_name: str) -> str | None:
             # Формат: NN.RUNE_NAME.ext или просто RUNE_NAME.ext
             name_parts = name.split(".")
             if len(name_parts) >= 2:
-                eng_name = name_parts[-1]  # Последняя часть после точки - английское имя
+                img_eng_name = name_parts[-1]  # Последняя часть после точки - английское имя
             else:
-                eng_name = name
+                img_eng_name = name
             
-            if eng_name.lower() == rune_name.lower():
+            if img_eng_name.lower() == eng_name.lower():
                 return os.path.join(RUNES_IMAGES_DIR, f)
     except FileNotFoundError:
         pass
