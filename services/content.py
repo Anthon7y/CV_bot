@@ -391,22 +391,20 @@ def format_admin_text(text: str) -> str:
     """
     import re
     
-    # Обработка комбинированных стилей с =* и *=
+    # Обработка комбинированных стилей с =* и *= (сначала!)
     # =*text*= → <b><u>text</u></b>
-    text = re.sub(r'=\\*([^*=]+)\\*=', r'<b><u>\1</u></b>', text)
-    # *=text*= → <u><b>text</b></u>
-    text = re.sub(r'\\*([^*=]+)=', r'<b><u>\1</u></b>', text)
+    text = re.sub(r'=\*(.+?)\*=', r'<b><u>\1</u></b>', text)
     
     # Обработка =text= (только подчеркнутый)
-    text = re.sub(r'=([^=]+)=', r'<u>\1</u>', text)
+    text = re.sub(r'=([^=<>]+)=', r'<u>\1</u>', text)
     
     # Обработка $text$ (зачеркнутый)
-    text = re.sub(r'\$([^\$]+)\$', r'<s>\1</s>', text)
+    text = re.sub(r'\$([^\$<>]+)\$', r'<s>\1</s>', text)
     
     # Обработка *text* (жирный)
-    text = re.sub(r'\*([^\*]+)\*', r'<b>\1</b>', text)
+    text = re.sub(r'\*([^\*<>]+)\*', r'<b>\1</b>', text)
     
     # Обработка _text_ (курсив)
-    text = re.sub(r'_([^_]+)_', r'<i>\1</i>', text)
+    text = re.sub(r'_([^_<>]+)_', r'<i>\1</i>', text)
     
     return text
