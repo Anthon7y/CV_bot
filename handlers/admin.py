@@ -45,10 +45,20 @@ async def stats_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # --- /broadcast - рассылка ВСЕМ пользователям ---
 
-@admin_only
 async def broadcast_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """/broadcast — начало рассылки."""
+    """ /broadcast — начало рассылки. """
+    from config import load_admins
     from services.db import get_subscribed_users
+    
+    user_id = update.effective_user.id
+    admins = load_admins()
+    
+    logger.info(f"broadcast_start: user_id={user_id}, admins={admins}, is_admin={user_id in admins}")
+    
+    if user_id not in admins:
+        await update.message.reply_text("У вас нет доступа к этой команде.")
+        return ConversationHandler.END
+    
     total = len(get_subscribed_users())
     await update.message.reply_text(
         f"Режим рассылки\n\n"
@@ -242,16 +252,17 @@ async def onas_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     from config import load_admins
     
-    logger.info(f"onas_start: user_id={user_id}")
+    logger.info(f"onas_start called for user_id={user_id}")
     
     # Проверка прав администратора
     admins = load_admins()
+    logger.info(f"onas_start: admins={admins}")
     if user_id not in admins:
         logger.info(f"onas_start: user {user_id} not admin")
         await update.message.reply_text("У вас нет доступа к этой команде.")
         return ConversationHandler.END
     
-    logger.info(f"onas_start: user {user_id} is admin")
+    logger.info(f"onas_start: user {user_id} is admin, showing prompt")
     
     # Показываем инструкцию
     await update.message.reply_text(
@@ -263,16 +274,20 @@ async def onas_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     onas_waiting_users.add(user_id)
     logger.info(f"onas_start: user {user_id} added to waiting list")
+    return WAITING_ONAS_TEXT
 
 
 async def onas_receive_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """ Обрабатывает текст от пользователя который ожидает отправить текст для /onas """
     user_id = update.effective_user.id
     
+    logger.info(f"onas_receive_text: user_id={user_id}, waiting_users={onas_waiting_users}")
+    
     if user_id not in onas_waiting_users:
+        logger.info(f"onas_receive_text: user {user_id} not in waiting list")
         return
     
-    logger.info(f"onas_receive_text: user_id={user_id}, text length={len(update.message.text)}")
+    logger.info(f"onas_receive_text: user {user_id} in waiting list, processing text")
     
     new_text = update.message.text.strip()
     
@@ -297,6 +312,7 @@ async def onas_receive_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Ошибка при сохранении: {e}")
     
     onas_waiting_users.discard(user_id)
+    logger.info(f"onas_receive_text: user {user_id} removed from waiting list")
 
 
 async def onas_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
