@@ -83,6 +83,7 @@ def main():
     app.add_handler(CommandHandler("follow", follow_handler))
     app.add_handler(CommandHandler("yes", handle_yes_no))
     app.add_handler(CommandHandler("no", handle_yes_no))
+    app.add_handler(CommandHandler("onas", onas_start))
 
     # ConversationHandlers (должны быть до общих MessageHandler)
     app.add_handler(broadcast_conv_handler)
