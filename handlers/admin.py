@@ -237,13 +237,21 @@ setname_conv_handler = ConversationHandler(
 # Храним состояние ожидания текста для /onas
 onas_waiting_users = set()
 
-@admin_only
 async def onas_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """ /onas — редактирование раздела "О нас". """
     user_id = update.effective_user.id
-    from config import ABOUT_US_ROOT, ABOUT_US_FILE, load_admins
+    from config import load_admins
     
     logger.info(f"onas_start: user_id={user_id}")
+    
+    # Проверка прав администратора
+    admins = load_admins()
+    if user_id not in admins:
+        logger.info(f"onas_start: user {user_id} not admin")
+        await update.message.reply_text("У вас нет доступа к этой команде.")
+        return ConversationHandler.END
+    
+    logger.info(f"onas_start: user {user_id} is admin")
     
     # Показываем инструкцию
     await update.message.reply_text(
