@@ -24,7 +24,7 @@ from handlers.about import about_handler, practicum_handler
 from handlers.subscription import subscription_handler, subscription_callback_handler, follow_handler
 from handlers.admin import (
     stats_handler, broadcast_conv_handler, setname_conv_handler, practicum_conv_handler,
-    onas_start, onas_receive_text, onas_cancel
+    onas_conv_handler, onas_start, onas_receive_text, onas_cancel
 )
 from handlers.subscription import unfollow_handler, handle_yes_no
 
@@ -83,11 +83,9 @@ def main():
     app.add_handler(CommandHandler("follow", follow_handler))
     app.add_handler(CommandHandler("yes", handle_yes_no))
     app.add_handler(CommandHandler("no", handle_yes_no))
-    app.add_handler(CommandHandler("onas", onas_start))
-    app.add_handler(CommandHandler("cancel", onas_cancel))
 
-    # Обработка текста от пользователей которые ждут отправки для /onas
-    app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.PRIVATE, onas_receive_text))
+    # ConversationHandlers
+    app.add_handler(onas_conv_handler)
 
     # Reply-кнопки главного меню
     # Reply-кнопки главного меню

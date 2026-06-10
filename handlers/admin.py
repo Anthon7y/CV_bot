@@ -297,6 +297,19 @@ async def onas_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Редактирование 'О нас' отменено.")
 
 
+# ConversationHandler для /onas
+onas_conv_handler = ConversationHandler(
+    entry_points=[CommandHandler("onas", onas_start)],
+    states={
+        WAITING_ONAS_TEXT: [
+            MessageHandler(filters.TEXT, onas_receive_text)
+        ],
+    },
+    fallbacks=[CommandHandler("cancel", onas_cancel)],
+    per_user=True,
+)
+
+
 # ConversationHandler для /practicums
 practicum_conv_handler = ConversationHandler(
     entry_points=[CommandHandler("practicums", practicum_start)],
