@@ -303,7 +303,7 @@ onas_conv_handler = ConversationHandler(
     entry_points=[CommandHandler("onas", onas_start)],
     states={
         WAITING_ONAS_TEXT: [
-            MessageHandler(filters.TEXT & ~filters.COMMAND, onas_receive)
+            MessageHandler(filters.TEXT, onas_receive)
         ],
     },
     fallbacks=[CommandHandler("cancel", onas_cancel)],
