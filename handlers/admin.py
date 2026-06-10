@@ -234,22 +234,16 @@ setname_conv_handler = ConversationHandler(
 
 # --- /onas - управление разделом "О нас" ---
 
+# Храним состояние ожидания текста для /onas
+onas_waiting_users = set()
+
+@admin_only
 async def onas_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """ /onas — редактирование раздела "О нас". """
-    logger.info("onas_start called")
-    
-    # Проверка прав администратора
-    from config import load_admins
     user_id = update.effective_user.id
-    admins = load_admins()
-    logger.info(f"onas_start: user_id={user_id}, admins={admins}, is_admin={user_id in admins}")
+    from config import ABOUT_US_ROOT, ABOUT_US_FILE, load_admins
     
-    if user_id not in admins:
-        logger.info("onas_start: user not admin")
-        await update.message.reply_text("У вас нет доступа к этой команде.")
-        return ConversationHandler.END
-    
-    logger.info("onas_start: user is admin, showing prompt")
+    logger.info(f"onas_start: user_id={user_id}")
     
     # Показываем инструкцию
     await update.message.reply_text(
@@ -258,29 +252,33 @@ async def onas_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Для отмены введите /cancel",
         parse_mode="Markdown"
     )
-    return WAITING_ONAS_TEXT
+    
+    onas_waiting_users.add(user_id)
+    logger.info(f"onas_start: user {user_id} added to waiting list")
 
 
-async def onas_receive(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def onas_receive_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """ Обрабатывает текст от пользователя который ожидает отправить текст для /onas """
     user_id = update.effective_user.id
-    admins = load_admins()
-    if user_id not in admins:
-        return ConversationHandler.END
-
+    
+    if user_id not in onas_waiting_users:
+        return
+    
+    logger.info(f"onas_receive_text: user_id={user_id}, text length={len(update.message.text)}")
+    
     new_text = update.message.text.strip()
-    logger.info(f"onas_receive: received text (length={len(new_text)}, first50='{new_text[:50] if len(new_text) > 50 else new_text}')")
     
     if not new_text:
         await update.message.reply_text("Текст не может быть пустым. Попробуйте ещё раз или /cancel")
-        return WAITING_ONAS_TEXT
-
+        return
+    
     try:
         # Записываем весь текст в корневой файл (ABOUT_US_ROOT)
-        logger.info(f"onas_receive: writing to {ABOUT_US_ROOT}")
+        logger.info(f"onas_receive_text: writing to {ABOUT_US_ROOT}")
         with open(ABOUT_US_ROOT, "w", encoding="utf-8") as f:
             f.write(new_text)
         
-        logger.info(f"onas_receive: text saved to {ABOUT_US_ROOT}")
+        logger.info(f"onas_receive_text: text saved to {ABOUT_US_ROOT}")
         await update.message.reply_text(
             "Раздел 'О нас' обновлен!\n\n"
             "Изменение вступило в силу немедленно.",
@@ -290,25 +288,13 @@ async def onas_receive(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Ошибка при сохранении 'О нас': {e}")
         await update.message.reply_text(f"Ошибка при сохранении: {e}")
     
-    return ConversationHandler.END
+    onas_waiting_users.discard(user_id)
 
 
 async def onas_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    onas_waiting_users.discard(user_id)
     await update.message.reply_text("Редактирование 'О нас' отменено.")
-    return ConversationHandler.END
-
-
-# ConversationHandler для /onas
-onas_conv_handler = ConversationHandler(
-    entry_points=[CommandHandler("onas", onas_start)],
-    states={
-        WAITING_ONAS_TEXT: [
-            MessageHandler(filters.TEXT, onas_receive)
-        ],
-    },
-    fallbacks=[CommandHandler("cancel", onas_cancel)],
-    per_user=True,
-)
 
 
 # ConversationHandler для /practicums
