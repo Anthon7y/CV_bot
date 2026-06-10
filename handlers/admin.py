@@ -29,9 +29,19 @@ def admin_only(func):
     return wrapper
 
 
-@admin_only
 async def stats_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """/stats — статистика пользователей."""
+    from config import load_admins
+    
+    user_id = update.effective_user.id
+    admins = load_admins()
+    
+    logger.info(f"stats_handler: user_id={user_id}, admins={admins}, is_admin={user_id in admins}")
+    
+    if user_id not in admins:
+        await update.message.reply_text("У вас нет доступа к этой команде.")
+        return
+    
     stats = get_stats()
     await update.message.reply_text(
         f"Статистика\n\n"
@@ -111,9 +121,19 @@ async def broadcast_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # --- /setname ---
 
-@admin_only
 async def setname_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """/setname — смена названия бота."""
+    """ /setname — смена названия бота. """
+    from config import load_admins
+    
+    user_id = update.effective_user.id
+    admins = load_admins()
+    
+    logger.info(f"setname_start: user_id={user_id}, admins={admins}, is_admin={user_id in admins}")
+    
+    if user_id not in admins:
+        await update.message.reply_text("У вас нет доступа к этой команде.")
+        return ConversationHandler.END
+    
     current = get_bot_name()
     await update.message.reply_text(
         f"Текущее название: *{current}*\n\n"
@@ -151,9 +171,19 @@ async def setname_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # --- /prac - управление практикумами ---
 
-@admin_only
 async def practicum_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """/prac — редактирование практикумов."""
+    """ /prac — редактирование практикумов. """
+    from config import load_admins
+    
+    user_id = update.effective_user.id
+    admins = load_admins()
+    
+    logger.info(f"practicum_start: user_id={user_id}, admins={admins}, is_admin={user_id in admins}")
+    
+    if user_id not in admins:
+        await update.message.reply_text("У вас нет доступа к этой команде.")
+        return ConversationHandler.END
+    
     current = load_practicums()
     
     if current:
