@@ -268,12 +268,15 @@ async def onas_receive(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
 
     new_text = update.message.text.strip()
+    logger.info(f"onas_receive: received text (length={len(new_text)}, first50='{new_text[:50] if len(new_text) > 50 else new_text}')")
+    
     if not new_text:
         await update.message.reply_text("Текст не может быть пустым. Попробуйте ещё раз или /cancel")
         return WAITING_ONAS_TEXT
 
     try:
         # Записываем весь текст в корневой файл (ABOUT_US_ROOT)
+        logger.info(f"onas_receive: writing to {ABOUT_US_ROOT}")
         with open(ABOUT_US_ROOT, "w", encoding="utf-8") as f:
             f.write(new_text)
         
@@ -285,7 +288,7 @@ async def onas_receive(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     except Exception as e:
         logger.error(f"Ошибка при сохранении 'О нас': {e}")
-        await update.message.reply_text("Ошибка при сохранении. Попробуйте ещё раз.")
+        await update.message.reply_text(f"Ошибка при сохранении: {e}")
     
     return ConversationHandler.END
 
