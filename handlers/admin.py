@@ -21,6 +21,7 @@ def admin_only(func):
     async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_id = update.effective_user.id
         admins = load_admins()
+        logger.info(f"admin_only check: user_id={user_id}, admins={admins}, is_admin={user_id in admins}")
         if user_id not in admins:
             await update.message.reply_text("У вас нет доступа к этой команде.")
             return ConversationHandler.END

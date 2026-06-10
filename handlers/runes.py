@@ -58,28 +58,31 @@ async def rune_callback_handler(update: Update, context: ContextTypes.DEFAULT_TY
     # Получаем картинку руны
     image_path = get_rune_image(rune_name)
 
-    # Отправляем картинку с описанием
+    # Отправляем картинку без текста
     if image_path and os.path.exists(image_path):
-        caption = f"*{rune_name}*\n\n"
-        
-        if info and info.get("value"):
-            caption += f"{info['value']}\n\n"
-        
-        if info and info.get("value_pp"):
-            caption += f"{info['value_pp']}"
-        
         try:
             with open(image_path, "rb") as img:
-                await query.message.reply_photo(
-                    photo=img,
-                    caption=caption,
-                    parse_mode="Markdown"
-                )
-            # Удаляем сообщение с выбором руны
-            await query.message.delete()
-            return
+                await query.message.reply_photo(photo=img)
         except Exception as e:
             logger.warning(f"Не удалось отправить картинку {image_path}: {e}")
+    
+    # Если есть описание, отправляем текстом
+    if info and (info.get("value") or info.get("value_pp")):
+        text = f"*{rune_name}*\n\n"
+        
+        if info.get("value"):
+            text += f"{info['value']}\n\n"
+        
+        if info.get("value_pp"):
+            text += f"{info['value_pp']}"
+        
+        await query.message.reply_text(text, parse_mode="Markdown")
+    
+    # Удаляем сообщение с выбором руны
+    try:
+        await query.message.delete()
+    except:
+        pass
     
     # Если картинку не удалось отправить, отправляем текст
     if not info:
