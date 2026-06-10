@@ -85,6 +85,9 @@ def main():
     app.add_handler(CommandHandler("no", handle_yes_no))
 
     # ConversationHandlers
+    app.add_handler(broadcast_conv_handler)
+    app.add_handler(setname_conv_handler)
+    app.add_handler(practicum_conv_handler)
     app.add_handler(onas_conv_handler)
 
     # Reply-кнопки главного меню
