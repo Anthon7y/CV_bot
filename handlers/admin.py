@@ -275,8 +275,9 @@ async def onas_receive(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         # Записываем весь текст в корневой файл (ABOUT_US_ROOT)
         with open(ABOUT_US_ROOT, "w", encoding="utf-8") as f:
-            f.write(new_text + "\n")
+            f.write(new_text)
         
+        logger.info(f"onas_receive: text saved to {ABOUT_US_ROOT}")
         await update.message.reply_text(
             "Раздел 'О нас' обновлен!\n\n"
             "Изменение вступило в силу немедленно.",

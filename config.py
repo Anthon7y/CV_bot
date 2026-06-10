@@ -108,29 +108,11 @@ def load_admins() -> set[int]:
 def get_about_text() -> str:
     """Возвращает текст 'О нас' из корневого файла."""
     try:
-        # Сначала пробуем windows-1251 (старый файл)
-        with open(ABOUT_US_ROOT, "r", encoding="windows-1251") as f:
+        with open(ABOUT_US_ROOT, "r", encoding="utf-8") as f:
             content = f.read().strip()
         if not content:
-            return ""
-        
-        # Пытаемся найти название бота (первая строка должна совпадать с именем бота)
-        lines = content.split("\n")
-        if len(lines) > 1:
-            # Есть хотя бы две строки - считаем первую название
-            return "\n".join(lines[1:]).strip()
-        else:
-            # Только одна строка - это либо название, либо текст
-            # Если это название бота, возвращаем пустой текст
-            try:
-                with open(ABOUT_US_FILE, "r", encoding="utf-8") as f:
-                    bot_name = f.readline().strip()
-                if content == bot_name:
-                    return ""
-            except:
-                pass
-            # Иначе это текст
-            return content
+            return "Информация о нас пока не добавлена."
+        return content
     except (FileNotFoundError, UnicodeDecodeError):
         pass
     
@@ -140,9 +122,11 @@ def get_about_text() -> str:
             lines = f.readlines()
         if len(lines) > 1:
             return "".join(lines[1:]).strip()
-        return ""
+        elif len(lines) == 1:
+            return lines[0].strip()
+        return "Информация о нас пока не добавлена."
     except FileNotFoundError:
-        return "Информация о нас пока недоступна."
+        return "Информация о нас пока не добавлена."
 
 
 def set_about_text(text: str) -> None:

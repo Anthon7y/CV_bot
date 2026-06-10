@@ -382,23 +382,31 @@ def save_practicums(text: str) -> None:
 def format_admin_text(text: str) -> str:
     """
     Форматирует текст для админа по маркерам:
-    *text* → жирный (Markdown)
-    _text_ → курсив (Markdown)
-    =text= → подчеркнутый (HTML)
-    $text$ → зачеркнутый (HTML)
+    *text* → жирный (HTML <b>)
+    _text_ → курсив (HTML <i>)
+    =text= → подчеркнутый (HTML <u>)
+    $text$ → зачеркнутый (HTML <s>)
+    
+    Поддерживает комбинирование: =*text*= → жирный + подчеркнутый
     """
     import re
     
-    # Обработка подчеркивания (HTML) - делаем первым чтобы не пересекаться
+    # Обработка комбинированных стилей с =* и *=
+    # =*text*= → <b><u>text</u></b>
+    text = re.sub(r'=\\*([^*=]+)\\*=', r'<b><u>\1</u></b>', text)
+    # *=text*= → <u><b>text</b></u>
+    text = re.sub(r'\\*([^*=]+)=', r'<b><u>\1</u></b>', text)
+    
+    # Обработка =text= (только подчеркнутый)
     text = re.sub(r'=([^=]+)=', r'<u>\1</u>', text)
     
-    # Обработка зачеркивания (HTML)
+    # Обработка $text$ (зачеркнутый)
     text = re.sub(r'\$([^\$]+)\$', r'<s>\1</s>', text)
     
-    # Обработка жирного (Markdown) - используем **text**
-    text = re.sub(r'\*([^\*]+)\*', r'*\1*', text)
+    # Обработка *text* (жирный)
+    text = re.sub(r'\*([^\*]+)\*', r'<b>\1</b>', text)
     
-    # Обработка курсива (Markdown) - используем _text_
-    text = re.sub(r'_([^_]+)_', r'_\1_', text)
+    # Обработка _text_ (курсив)
+    text = re.sub(r'_([^_]+)_', r'<i>\1</i>', text)
     
     return text
